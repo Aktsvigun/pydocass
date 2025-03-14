@@ -1,0 +1,48 @@
+.
+├── Dockerfile
+├── README.md
+├── app
+│   └── api
+│       └── pydocass
+│           ├── README.md
+│           ├── requirements.txt
+│           ├── server
+│           └── src
+│               ├── pydocass
+│               │   ├── components
+│               │   ├── connection
+│               │   └── utils
+│               └── pydocass.egg-info
+│                   ├── PKG-INFO
+│                   ├── SOURCES.txt
+│                   ├── dependency_links.txt
+│                   ├── requires.txt
+│                   └── top_level.txt
+├── components
+│   ├── APIKeyInput.tsx
+│   ├── CodeBlock.tsx
+│   ├── ModelSelect.tsx
+│   └── TextBlock.tsx
+├── docker-compose.yml
+├── next-env.d.ts
+├── next.config.js
+├── package.json
+├── pages
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── api
+│   │   └── document.ts
+│   └── index.tsx
+├── postcss.config.js
+├── prettier.config.js
+├── public
+├── repo_tree.txt
+├── styles
+│   └── globals.css
+├── tailwind.config.js
+├── tsconfig.json
+├── types
+│   └── types.ts
+└── utils
+
+18 directories, 28 files

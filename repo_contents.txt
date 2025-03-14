@@ -1,0 +1,833 @@
+### FILE: ./repo_tree.txt ###
+.
+├── Dockerfile
+├── README.md
+├── app
+│   └── api
+│       └── pydocass
+│           ├── README.md
+│           ├── requirements.txt
+│           ├── server
+│           └── src
+│               ├── pydocass
+│               │   ├── components
+│               │   ├── connection
+│               │   └── utils
+│               └── pydocass.egg-info
+│                   ├── PKG-INFO
+│                   ├── SOURCES.txt
+│                   ├── dependency_links.txt
+│                   ├── requires.txt
+│                   └── top_level.txt
+├── components
+│   ├── APIKeyInput.tsx
+│   ├── CodeBlock.tsx
+│   ├── ModelSelect.tsx
+│   └── TextBlock.tsx
+├── docker-compose.yml
+├── next-env.d.ts
+├── next.config.js
+├── package.json
+├── pages
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── api
+│   │   └── document.ts
+│   └── index.tsx
+├── postcss.config.js
+├── prettier.config.js
+├── public
+├── repo_tree.txt
+├── styles
+│   └── globals.css
+├── tailwind.config.js
+├── tsconfig.json
+├── types
+│   └── types.ts
+└── utils
+
+18 directories, 28 files
+
+
+### FILE: ./.env.local.example ###
+OPENAI_API_KEY=YOUR_KEY_HERE
+
+### FILE: ./tailwind.config.js ###
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {}
+  },
+  plugins: []
+};
+
+### FILE: ./Dockerfile ###
+# Use the official Node.js image as the base image
+FROM node:14
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
+
+# Install the dependencies
+RUN npm ci
+
+# Copy the rest of the application code to the working directory
+COPY . .
+
+# Expose the port the app will run on
+EXPOSE 3001
+
+# Start the application
+CMD ["npm", "run", "dev"]
+
+
+### FILE: ./next.config.js ###
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+}
+
+module.exports = nextConfig
+
+
+### FILE: ./next-env.d.ts ###
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+/// <reference types="next/navigation-types/compat/navigation" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+### FILE: ./README.md ###
+# AI Code Translator
+
+Use AI to translate code from one language to another.
+
+![AI Code Translator](./public/screenshot.png)
+
+## Running Locally
+
+**1. Clone Repo**
+
+```bash
+git clone https://github.com/mckaywrigley/ai-code-translator.git
+```
+
+**2. Install Dependencies**
+
+```bash
+npm i
+```
+
+**3. Run App**
+
+```bash
+npm run dev
+```
+
+## Contact
+
+If you have any questions, feel free to reach out to me on [Twitter](https://twitter.com/mckaywrigley).
+
+
+### FILE: ./prettier.config.js ###
+module.exports = {
+  trailingComma: "all",
+  singleQuote: true,
+  plugins: [require("prettier-plugin-tailwindcss")]
+};
+
+
+### FILE: ./.gitignore ###
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+yarn.lock
+
+### FILE: ./package.json ###
+{
+  "name": "code-document",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@codemirror/legacy-modes": "^6.3.2",
+    "@uiw/codemirror-theme-github": "^4.23.8",
+    "@uiw/codemirror-theme-tokyo-night": "^4.19.11",
+    "@uiw/react-codemirror": "^4.19.11",
+    "endent": "^2.1.0",
+    "eventsource-parser": "^1.0.0",
+    "next": "^15.1.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.15.11",
+    "@types/react": "18.0.31",
+    "@types/react-dom": "18.0.11",
+    "autoprefixer": "^10.4.14",
+    "eslint": "8.37.0",
+    "eslint-config-next": "13.2.4",
+    "postcss": "^8.4.21",
+    "prettier-plugin-tailwindcss": "^0.2.6",
+    "tailwindcss": "^3.3.1",
+    "typescript": "5.0.3"
+  }
+}
+
+
+### FILE: ./tsconfig.json ###
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "nodenext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+
+
+### FILE: ./docker-compose.yml ###
+version: '3.8'
+
+services:
+  ai-code-translator:
+    build: .
+    container_name: ai_code_translator
+    ports:
+      - '3001:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+
+
+### FILE: ./postcss.config.js ###
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+### FILE: ./.eslintrc.json ###
+{
+  "extends": "next/core-web-vitals"
+}
+
+
+### FILE: ./types/types.ts ###
+export type NebiusModel = 'Qwen/Qwen2.5-Coder-32B-Instruct-fast' | 'deepseek-ai/DeepSeek-V3' | 'Qwen/QwQ-32B-fast' | 'meta-llama/Llama-3.3-70B-Instruct-fast' | 'Qwen/Qwen2.5-Coder-32B-Instruct' | 'Qwen/QwQ-32B' | 'meta-llama/Llama-3.3-70B-Instruct';
+
+export interface CodeBody {
+  inputCode: string;
+  outputCode: string;
+  model: NebiusModel;
+  apiKey: string;
+  modifyExistingDocumentation: boolean;
+  doWriteArgumentsAnnotations: boolean;
+  doWriteDocstrings: boolean;
+  doWriteComments: boolean;
+}
+
+export interface DocumentResponse {
+  code: string;
+}
+
+
+### FILE: ./app/api/pydocass/requirements.txt ###
+openai==1.58.1
+PyMuPDF==1.24.11
+pdfplumber==0.11.4
+requests==2.32.3
+sqlalchemy==2.0.36
+streamlit==1.39.0
+transformers==4.47.1
+psycopg2-binary==2.9.10
+flask==3.1.0
+flask-cors==5.0.1
+black==25.1.0
+
+### FILE: ./app/api/pydocass/README.md ###
+## TODO:
+  - Reduce the number of comments
+  - Embedded functions (functions inside function / method)
+
+
+### FILE: ./app/api/pydocass/src/pydocass.egg-info/PKG-INFO ###
+Metadata-Version: 2.2
+Name: pydocass
+Version: 0.0.1
+Requires-Dist: openai==1.58.1
+Requires-Dist: PyMuPDF==1.24.11
+Requires-Dist: pdfplumber==0.11.4
+Requires-Dist: requests==2.32.3
+Requires-Dist: sqlalchemy==2.0.36
+Requires-Dist: streamlit==1.39.0
+Requires-Dist: transformers==4.47.1
+Requires-Dist: psycopg2-binary==2.9.10
+Requires-Dist: flask==3.1.0
+Requires-Dist: flask-cors==5.0.1
+Requires-Dist: black==25.1.0
+Dynamic: requires-dist
+
+
+### FILE: ./app/api/pydocass/src/pydocass.egg-info/SOURCES.txt ###
+README.md
+setup.py
+src/pydocass/__init__.py
+src/pydocass/document_python_code.py
+src/pydocass.egg-info/PKG-INFO
+src/pydocass.egg-info/SOURCES.txt
+src/pydocass.egg-info/dependency_links.txt
+src/pydocass.egg-info/requires.txt
+src/pydocass.egg-info/top_level.txt
+src/pydocass/components/__init__.py
+src/pydocass/components/potentially_add_class_to_typing_import.py
+src/pydocass/components/write_arguments_annotations.py
+src/pydocass/components/write_comments.py
+src/pydocass/components/write_docstrings.py
+src/pydocass/connection/__init__.py
+src/pydocass/connection/database.py
+src/pydocass/connection/submit_record.py
+src/pydocass/utils/__init__.py
+src/pydocass/utils/constants.py
+src/pydocass/utils/old_prompts.py
+src/pydocass/utils/prompts.py
+src/pydocass/utils/utils.py
+
+### FILE: ./app/api/pydocass/src/pydocass.egg-info/requires.txt ###
+openai==1.58.1
+PyMuPDF==1.24.11
+pdfplumber==0.11.4
+requests==2.32.3
+sqlalchemy==2.0.36
+streamlit==1.39.0
+transformers==4.47.1
+psycopg2-binary==2.9.10
+flask==3.1.0
+flask-cors==5.0.1
+black==25.1.0
+
+
+### FILE: ./app/api/pydocass/src/pydocass.egg-info/top_level.txt ###
+pydocass
+
+
+### FILE: ./app/api/pydocass/src/pydocass.egg-info/dependency_links.txt ###
+
+
+
+### FILE: ./styles/globals.css ###
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: white;
+  color: black;
+}
+
+### FILE: ./components/ModelSelect.tsx ###
+// ./components/ModelSelect.tsx
+
+import { NebiusModel } from '@/types/types';
+import { FC } from 'react';
+
+interface Props {
+  model: NebiusModel;
+  onChange: (model: NebiusModel) => void;
+}
+
+export const ModelSelect: FC<Props> = ({ model, onChange }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(e.target.value as NebiusModel);
+  };
+
+  return (
+    <select
+      className="h-[40px] w-[300px] rounded-md bg-white border border-gray-300 px-4 py-2 text-black"
+      value={model}
+      onChange={handleChange}
+    >
+      <option value="Qwen/Qwen2.5-Coder-32B-Instruct-fast">
+        Qwen2.5-Coder-32B-Instruct-fast
+      </option>
+      <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3</option>
+      <option value="Qwen/QwQ-32B-fast">QwQ-32B-fast</option>
+      <option value="meta-llama/Llama-3.3-70B-Instruct-fast">
+        Llama-3.3-70B-Instruct-fast
+      </option>
+      <option value="Qwen/Qwen2.5-Coder-32B-Instruct">
+        Qwen2.5-Coder-32B-Instruct
+      </option>
+      <option value="Qwen/QwQ-32B">QwQ-32B</option>
+      <option value="meta-llama/Llama-3.3-70B-Instruct">
+        Llama-3.3-70B-Instruct
+      </option>
+    </select>
+  );
+};
+
+
+### FILE: ./components/TextBlock.tsx ###
+interface Props {
+  text: string;
+  editable?: boolean;
+  onChange?: (value: string) => void;
+}
+
+export const TextBlock: React.FC<Props> = ({
+  text,
+  editable = false,
+  onChange = () => {},
+}) => {
+  return (
+    <textarea
+      className="min-h-[500px] w-full bg-white border border-gray-300 p-4 text-[15px] text-black focus:outline-none"
+      style={{ resize: 'none' }}
+      value={text}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={!editable}
+    />
+  );
+};
+
+
+### FILE: ./components/APIKeyInput.tsx ###
+interface Props {
+  apiKey: string;
+  onChange: (apiKey: string) => void;
+}
+
+export const APIKeyInput: React.FC<Props> = ({ apiKey, onChange }) => {
+  return (
+    <input
+      className="mt-1 h-[24px] w-[280px] rounded-md border border-gray-300 px-3 py-2 text-black shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+      type="password"
+      placeholder="OpenAI API Key"
+      value={apiKey}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+};
+
+
+### FILE: ./components/CodeBlock.tsx ###
+import { StreamLanguage } from '@codemirror/language';
+import { go } from '@codemirror/legacy-modes/mode/go';
+import { githubLight } from '@uiw/codemirror-theme-github';
+import CodeMirror from '@uiw/react-codemirror';
+import { FC, useEffect, useState } from 'react';
+
+interface Props {
+  code: string;
+  editable?: boolean;
+  onChange?: (value: string) => void;
+}
+
+export const CodeBlock: FC<Props> = ({
+  code,
+  editable = false,
+  onChange = () => {},
+}) => {
+  const [copyText, setCopyText] = useState<string>('Copy');
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setCopyText('Copy');
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [copyText]);
+
+  return (
+      <div className="relative bg-white border border-gray-300 rounded-md p-2">
+          <button
+              className="absolute right-2 top-2 z-10 rounded bg-blue-100 px-2 py-1 text-xs text-blue-800 hover:bg-blue-200 active:bg-blue-300"
+              onClick={() => {
+                  navigator.clipboard.writeText(code);
+                  setCopyText('Copied!');
+              }}
+          >
+              {copyText}
+          </button>
+
+          <CodeMirror
+              editable={editable}
+              value={code}
+              minHeight="500px"
+              extensions={[StreamLanguage.define(go)]}
+              theme={githubLight}
+              onChange={(value) => onChange(value)}
+              className="bg-white"
+          />
+
+      </div>
+  );
+};
+
+
+### FILE: ./pages/index.tsx ###
+import Head from 'next/head';
+import { useEffect, useState } from 'react';
+import { CodeBlock } from '@/components/CodeBlock';
+import { APIKeyInput } from '@/components/APIKeyInput';
+import { ModelSelect } from '@/components/ModelSelect';
+import { NebiusModel } from '@/types/types';
+import { CodeBody } from '@/types/types';
+
+
+export default function Home() {
+  // We only have one code input and one code output
+  const [inputCode, setInputCode] = useState<string>('');
+  const [outputCode, setOutputCode] = useState<string>('');
+
+  // Model selection
+  const [model, setModel] = useState<NebiusModel>(
+    'Qwen/Qwen2.5-Coder-32B-Instruct-fast',
+  );
+
+  // Four booleans
+  const [modifyExistingDocumentation, setModifyExistingDocumentation] = useState<boolean>(true);
+  const [doWriteArgumentsAnnotations, setDoWriteArgumentsAnnotations] = useState<boolean>(true);
+  const [doWriteDocstrings, setDoWriteDocstrings] = useState<boolean>(true);
+  const [doWriteComments, setDoWriteComments] = useState<boolean>(true);
+
+  // General state
+  const [loading, setLoading] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('');
+
+  // Load any existing API key from localStorage if you want it
+  useEffect(() => {
+    const storedKey = localStorage.getItem('apiKey');
+    if (storedKey) {
+      setApiKey(storedKey);
+    }
+  }, []);
+
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    localStorage.setItem('apiKey', value);
+  };
+
+  const handleDocument = async () => {
+    // Basic checks
+    if (!inputCode.trim()) {
+      alert('Please enter some Python code first.');
+      return;
+    }
+
+    setLoading(true);
+    setOutputCode('');
+
+    try {
+      // Prepare request body
+      const body: CodeBody = {
+        inputCode,
+        outputCode: '', // Not used by the backend, but typed in CodeBody
+        model,
+        apiKey, // not explicitly needed by your local server, but included in the type
+        modifyExistingDocumentation,
+        doWriteArgumentsAnnotations,
+        doWriteDocstrings,
+        doWriteComments,
+      };
+
+      const response = await fetch('/api/document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        setLoading(false);
+        alert('Error calling backend /api/document.');
+        return;
+      }
+
+      // SSE streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        setLoading(false);
+        alert('No readable stream returned by the server.');
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let done = false;
+      let docString = '';
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunkValue = decoder.decode(value);
+          docString = chunkValue; // Instead of accumulating, store only the latest chunk
+          setOutputCode(chunkValue); // Set state with the latest response
+        }
+      }
+
+
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      alert('Error streaming from backend.');
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Python Code Documentation Assistant</title>
+        <meta name="description" content="Use Nebius AI Studio to document your Python code." />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+
+      <div className="flex h-full min-h-screen flex-col items-center bg-white px-4 pb-20 text-black sm:px-10">
+        <div className="mt-10 sm:mt-14 text-center">
+          <h1 className="text-3xl font-bold">Python Code Documentation Assistant</h1>
+        </div>
+
+        {/* API Key */}
+        <div className="mt-6">
+          <APIKeyInput apiKey={apiKey} onChange={handleApiKeyChange} />
+        </div>
+
+        {/* Model + Submit button */}
+        <div className="mt-4 flex items-center space-x-2">
+          <ModelSelect model={model} onChange={(val) => setModel(val)}/>
+          <button
+            onClick={handleDocument}
+            disabled={loading}
+            className={`cursor-pointer rounded-md bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700 transition-all whitespace-nowrap ${
+              loading ? 'w-[200px]' : 'w-[120px]'
+            }`}
+          >
+            {loading ? 'Annotating your code...' : 'Submit'}
+          </button>
+        </div>
+
+        {/* The checkboxes for booleans */}
+        <div className="mt-6 flex flex-col space-y-2">
+          <label className="flex items-center space-x-2">
+            <input
+                type="checkbox"
+                checked={modifyExistingDocumentation}
+                onChange={(e) => setModifyExistingDocumentation(e.target.checked)}
+            />
+            <span>Modify existing docstrings</span>
+          </label>
+
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={doWriteArgumentsAnnotations}
+              onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
+            />
+            <span>Write arguments annotation</span>
+          </label>
+
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={doWriteDocstrings}
+              onChange={(e) => setDoWriteDocstrings(e.target.checked)}
+            />
+            <span>Write docstrings</span>
+          </label>
+
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={doWriteComments}
+              onChange={(e) => setDoWriteComments(e.target.checked)}
+            />
+            <span>Write inline comments</span>
+          </label>
+        </div>
+
+        {/* Input + Output blocks */}
+        <div className="mt-8 w-full max-w-[1200px] flex flex-col space-y-8 sm:flex-row sm:space-y-0 sm:space-x-8">
+          {/* Input block */}
+          <div className="sm:w-1/2">
+            <h2 className="mb-2 text-center text-xl font-bold">Input Code</h2>
+            <CodeBlock
+              code={inputCode}
+              editable={!loading}
+              onChange={(val) => setInputCode(val)}
+            />
+          </div>
+
+          {/* Output block */}
+          <div className="sm:w-1/2">
+            <h2 className="mb-2 text-center text-xl font-bold">Output (Documentation)</h2>
+            <CodeBlock code={outputCode} editable={false} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+### FILE: ./pages/_document.tsx ###
+import { Html, Head, Main, NextScript } from 'next/document'
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head />
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  )
+}
+
+
+### FILE: ./pages/_app.tsx ###
+import "@/styles/globals.css";
+import type { AppProps } from "next/app";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
+
+function App({ Component, pageProps }: AppProps<{}>) {
+  return (
+    <main className={inter.className}>
+      <Component {...pageProps} />
+    </main>
+  );
+}
+
+export default App;
+
+
+### FILE: ./pages/api/document.ts ###
+import { CodeBody, DocumentResponse } from '@/types/types';
+export const config = {
+  runtime: 'edge',
+};
+
+const handler = async (req: Request): Promise<Response> => {
+  try {
+    const { inputCode, outputCode, model, apiKey,  modifyExistingDocumentation, doWriteArgumentsAnnotations, doWriteDocstrings, doWriteComments} =
+      (await req.json()) as CodeBody;
+
+    const response = await fetch('http://localhost:4000/document', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: inputCode,
+        model_checkpoint: model,
+        modify_existing_documentation: modifyExistingDocumentation,
+        do_write_arguments_annotations: doWriteArgumentsAnnotations,
+        do_write_docstrings: doWriteDocstrings,
+        do_write_comments: doWriteComments,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Backend error: ${response.statusText}`);
+    }
+
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+      },
+    });
+
+  } catch (error) {
+    console.error(error);
+    return new Response('Error', { status: 500 });
+  }
+};
+
+export default handler;
