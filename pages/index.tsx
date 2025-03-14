@@ -5,9 +5,12 @@ import { CodeBlock } from '@/components/CodeBlock';
 import { ModelSelect } from '@/components/ModelSelect';
 import { NebiusModel } from '@/types/types';
 import { CodeBody } from '@/types/types';
-
+import { Header } from '@/components/Header';
+import { Button, Checkbox, Text, useLayoutContext } from '@gravity-ui/uikit';
+import styles from '@/styles/Home.module.css';
 
 export default function Home() {
+  const { isMediaActive } = useLayoutContext();
   // We only have one code input and one code output
   const [inputCode, setInputCode] = useState<string>('');
   const [outputCode, setOutputCode] = useState<string>('');
@@ -113,150 +116,80 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="flex min-h-screen flex-col items-center
-                bg-gradient-to-br from-gray-50 to-gray-100
-                px-4 pb-20 text-gray-900 sm:px-10">
-        <div className="mt-10 sm:mt-14 text-center">
-          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text
-               bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
-               drop-shadow-sm">
-            Python Code Documentation Assistant
-          </h1>
-        </div>
+      <div className={styles.container}>
+        <Header />
+        
+        <main className={styles.main}>
+          <div className={styles.title}>
+            <Text variant="display-4" as="h1">
+              Python Code Documentation Assistant
+            </Text>
+          </div>
 
-        {/*/!* API Key *!/*/}
-        {/*<div className="mt-6">*/}
-        {/*  <APIKeyInput apiKey={apiKey} onChange={handleApiKeyChange}/>*/}
-        {/*</div>*/}
-
-        {/* Model + Submit button */}
-        <div className="mt-4 flex items-center space-x-2">
-          <ModelSelect model={model} onChange={(val) => setModel(val)}/>
-          <button
+          <div className={styles.controls}>
+            <ModelSelect model={model} onChange={(val) => setModel(val)} />
+            <Button
+              view="action"
+              size={isMediaActive("l") ? "xl" : "m"}
+              loading={loading}
               onClick={handleDocument}
               disabled={loading}
-              className={`${
-                  loading ? 'w-[200px]' : 'w-[120px]'
-              } cursor-pointer rounded-lg bg-gradient-to-r 
-     from-indigo-500 to-blue-500 px-4 py-2 font-semibold text-white 
-     shadow-lg transition-all hover:from-indigo-600 hover:to-blue-600 
-     disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            {loading ? 'Annotating your code...' : 'Submit'}
-          </button>
-        </div>
+            >
+              {loading ? 'Annotating your code...' : 'Submit'}
+            </Button>
+          </div>
 
-        {/* The checkboxes for booleans */}
-        <div className="mt-6 flex flex-col space-y-2">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={modifyExistingDocumentation}
-                onChange={(e) => setModifyExistingDocumentation(e.target.checked)}
-            />
-            <div
-                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
-               rounded-full peer peer-checked:bg-indigo-500
-               peer-checked:after:translate-x-5
-               peer-checked:after:border-white
-               after:content-[''] after:absolute after:top-[2px]
-               after:left-[2px] after:bg-white after:border-gray-300
-               after:border after:rounded-full after:h-5 after:w-5
-               after:transition-all"
-            ></div>
-            <span className="ml-3 text-sm text-gray-700">Modify existing documentation</span>
-          </label>
+          <div className={styles.checkboxes}>
+            <Checkbox
+              checked={modifyExistingDocumentation}
+              onChange={(e) => setModifyExistingDocumentation(e.target.checked)}
+            >
+              Modify existing documentation
+            </Checkbox>
+            <Checkbox
+              checked={doWriteArgumentsAnnotations}
+              onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
+            >
+              Write arguments annotations
+            </Checkbox>
+            <Checkbox
+              checked={doWriteDocstrings}
+              onChange={(e) => setDoWriteDocstrings(e.target.checked)}
+            >
+              Write docstrings
+            </Checkbox>
+            <Checkbox
+              checked={doWriteComments}
+              onChange={(e) => setDoWriteComments(e.target.checked)}
+            >
+              Write comments
+            </Checkbox>
+          </div>
 
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={doWriteArgumentsAnnotations}
-                onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
-            />
-            <div
-                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
-               rounded-full peer peer-checked:bg-indigo-500
-               peer-checked:after:translate-x-5
-               peer-checked:after:border-white
-               after:content-[''] after:absolute after:top-[2px]
-               after:left-[2px] after:bg-white after:border-gray-300
-               after:border after:rounded-full after:h-5 after:w-5
-               after:transition-all"
-            ></div>
-            <span className="ml-3 text-sm text-gray-700">Write arguments annotations</span>
-          </label>
-
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={doWriteDocstrings}
-                onChange={(e) => setDoWriteDocstrings(e.target.checked)}
-            />
-            <div
-                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
-               rounded-full peer peer-checked:bg-indigo-500
-               peer-checked:after:translate-x-5
-               peer-checked:after:border-white
-               after:content-[''] after:absolute after:top-[2px]
-               after:left-[2px] after:bg-white after:border-gray-300
-               after:border after:rounded-full after:h-5 after:w-5
-               after:transition-all"
-            ></div>
-            <span className="ml-3 text-sm text-gray-700">Write docstrings</span>
-          </label>
-
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={doWriteComments}
-                onChange={(e) => setDoWriteComments(e.target.checked)}
-            />
-            <div
-                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
-               rounded-full peer peer-checked:bg-indigo-500
-               peer-checked:after:translate-x-5
-               peer-checked:after:border-white
-               after:content-[''] after:absolute after:top-[2px]
-               after:left-[2px] after:bg-white after:border-gray-300
-               after:border after:rounded-full after:h-5 after:w-5
-               after:transition-all"
-            ></div>
-            <span className="ml-3 text-sm text-gray-700">Write comments</span>
-          </label>
-        </div>
-
-        {/* Input + Output blocks */}
-        <div className="mt-8 w-full max-w-[1200px] flex flex-col space-y-8 sm:flex-row sm:space-y-0 sm:space-x-8">
-          {/* Input block */}
-          <div className="sm:w-1/2">
-            <h2 className="text-2xl font-extrabold text-transparent
-               bg-clip-text bg-gradient-to-r from-green-500 to-blue-500
-               mb-4 text-center drop-shadow-sm">
-              Input Code
-            </h2>
-
-            <CodeBlock
+          <div className={styles.codeBlocks}>
+            <div className={styles.codeBlock}>
+              <Text variant="display-2" as="h2" className={styles.codeBlockTitle}>
+                Input Code
+              </Text>
+              <CodeBlock
                 code={inputCode}
                 editable={!loading}
                 onChange={(val) => setInputCode(val)}
-            />
-          </div>
+              />
+            </div>
 
-          {/* Output block */}
-          <div className="sm:w-1/2">
-            <h2 className="text-2xl font-extrabold text-transparent
-               bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500
-               mb-4 text-center drop-shadow-sm">
-              Output (Documentation)
-            </h2>
-
-            <CodeBlock code={outputCode} editable={false}/>
+            <div className={styles.codeBlock}>
+              <Text variant="display-2" as="h2" className={styles.codeBlockTitle}>
+                Output Code
+              </Text>
+              <CodeBlock
+                code={outputCode}
+                editable={false}
+                onChange={() => {}}
+              />
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </>
   );

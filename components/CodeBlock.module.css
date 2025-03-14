@@ -1,0 +1,23 @@
+.container {
+  position: relative;
+  background-color: var(--g-color-base-background);
+  border: 1px solid var(--g-color-line-generic);
+  border-radius: var(--g-border-radius-m);
+  padding: var(--g-spacing-2);
+}
+
+.copyButton {
+  position: absolute;
+  right: var(--g-spacing-2);
+  top: var(--g-spacing-2);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--g-spacing-1);
+}
+
+.editor {
+  background-color: var(--g-color-base-background);
+  border-radius: var(--g-border-radius-m);
+  overflow: hidden;
+} 

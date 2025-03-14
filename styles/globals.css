@@ -1,8 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import '@gravity-ui/uikit/styles.css';
 
+:root {
+  --g-color-base-background: #ffffff;
+  --g-color-base-main-menu-background: #1a1a1a;
+  --g-color-line-generic: #e5e5e5;
+  --g-color-text-light-primary: #ffffff;
+  --g-color-text-light-complementary: #a0a0a0;
+  --g-text-header-1-font-size: 24px;
+  --g-text-header-1-line-height: 32px;
+  --g-text-body-3-font-size: 14px;
+  --g-text-body-3-line-height: 20px;
+  --g-border-radius-m: 8px;
+  --g-spacing-1: 4px;
+  --g-spacing-2: 8px;
+  --g-spacing-4: 16px;
+  --g-spacing-6: 24px;
+  --g-spacing-8: 32px;
+  --g-spacing-10: 40px;
+  --g-spacing-14: 56px;
+}
+
+[data-theme='dark'] {
+  --g-color-base-background: #1a1a1a;
+  --g-color-base-main-menu-background: #000000;
+  --g-color-line-generic: #333333;
+  --g-color-text-light-primary: #ffffff;
+  --g-color-text-light-complementary: #a0a0a0;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
 body {
-  background-color: white;
-  color: black;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--g-color-base-background);
+  color: var(--g-color-text-light-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }

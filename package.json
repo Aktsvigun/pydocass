@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@codemirror/legacy-modes": "^6.3.2",
+    "@gravity-ui/icons": "^2.12.0",
+    "@gravity-ui/uikit": "^7.1.1",
+    "@svgr/webpack": "^8.1.0",
     "@uiw/codemirror-theme-github": "^4.23.8",
     "@uiw/codemirror-theme-tokyo-night": "^4.19.11",
     "@uiw/react-codemirror": "^4.19.11",
