@@ -21,6 +21,7 @@
 .venv
 *.egg-info
 *__pycache__
+nebius_example_project
 
 # debug
 npm-debug.log*
