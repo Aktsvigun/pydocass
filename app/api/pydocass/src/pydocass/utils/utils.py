@@ -2,11 +2,12 @@ import ast
 from datetime import datetime
 import json
 import os
-from typing import Union, Literal
+from typing import Union, Literal, Any
 from transformers import PreTrainedTokenizer, AutoTokenizer
 import warnings
 import black
 
+from openai import Client
 from openai.lib.streaming.chat._events import ChunkEvent
 
 from .constants import (
@@ -17,6 +18,7 @@ from .constants import (
     LONG_CONTEXT_MODEL_CHECKPOINT,
     MAX_TOKENS_WITH_LONG_CONTEXT,
     DEFAULT_TOKENIZER_CHECKPOINT,
+    BASE_URL
 )
 
 
@@ -160,3 +162,12 @@ def format_code_with_black(code: str) -> str:
     except Exception as e:
         print(f"Error formatting code with Black: {e}")
         return code  # Return original code if an error occurs
+
+def get_client(data: dict[str, Any]):
+    api_key = data.get("api_key", None) or os.getenv("NEBIUS_API_KEY") or os.getenv("OPENAI_API_KEY")
+    if api_key is None:
+        raise ValueError(
+            "Please provide the API key to Nebius AI Studio with `NEBIUS_API_KEY=...` or `OPENAI_API_KEY=...`"
+        )
+
+    return Client(api_key=api_key, base_url=BASE_URL)

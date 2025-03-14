@@ -4,28 +4,14 @@ from argparse import ArgumentParser
 
 from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
-from openai import Client
 
 from pydocass import document_python_code
 from pydocass.connection import submit_record
-from pydocass.utils.utils import format_code_with_black
+from pydocass.utils.utils import format_code_with_black, get_client
 
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-BASE_URL = (
-    os.getenv("NEBIUS_BASE_URL")
-    or os.getenv("OPENAI_BASE_URL")
-    or "https://api.studio.nebius.ai/v1"
-)
-API_KEY = os.getenv("NEBIUS_API_KEY") or os.getenv("OPENAI_API_KEY")
-if API_KEY is None:
-    raise ValueError(
-        "Please provide the API key to Nebius AI Studio with `NEBIUS_API_KEY=...` or `OPENAI_API_KEY=...`"
-    )
-
-client = Client(api_key=API_KEY, base_url=BASE_URL)
 
 
 @app.route("/document", methods=["POST"])
@@ -34,6 +20,8 @@ def document_code():
     code = rf"{data.get('code', '')}"
     in_time = datetime.now()
     submit_record(table="inputs", in_time=in_time, in_code=code)
+
+    client = get_client(data)
 
     def generate():
         try:

@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { CodeBlock } from '@/components/CodeBlock';
-import { APIKeyInput } from '@/components/APIKeyInput';
+// import { APIKeyInput } from '@/components/APIKeyInput';
 import { ModelSelect } from '@/components/ModelSelect';
 import { NebiusModel } from '@/types/types';
 import { CodeBody } from '@/types/types';
@@ -54,13 +54,12 @@ export default function Home() {
       // Prepare request body
       const body: CodeBody = {
         inputCode,
-        outputCode: '', // Not used by the backend, but typed in CodeBody
         model,
-        apiKey, // not explicitly needed by your local server, but included in the type
         modifyExistingDocumentation,
         doWriteArgumentsAnnotations,
         doWriteDocstrings,
         doWriteComments,
+        apiKey, // not explicitly needed by your local server, but included in the type
       };
 
       const response = await fetch('/api/document', {
@@ -114,25 +113,34 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className="flex h-full min-h-screen flex-col items-center bg-white px-4 pb-20 text-black sm:px-10">
+      <div className="flex min-h-screen flex-col items-center
+                bg-gradient-to-br from-gray-50 to-gray-100
+                px-4 pb-20 text-gray-900 sm:px-10">
         <div className="mt-10 sm:mt-14 text-center">
-          <h1 className="text-3xl font-bold">Python Code Documentation Assistant</h1>
+          <h1 className="text-4xl font-extrabold text-transparent bg-clip-text
+               bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+               drop-shadow-sm">
+            Python Code Documentation Assistant
+          </h1>
         </div>
 
-        {/* API Key */}
-        <div className="mt-6">
-          <APIKeyInput apiKey={apiKey} onChange={handleApiKeyChange} />
-        </div>
+        {/*/!* API Key *!/*/}
+        {/*<div className="mt-6">*/}
+        {/*  <APIKeyInput apiKey={apiKey} onChange={handleApiKeyChange}/>*/}
+        {/*</div>*/}
 
         {/* Model + Submit button */}
         <div className="mt-4 flex items-center space-x-2">
           <ModelSelect model={model} onChange={(val) => setModel(val)}/>
           <button
-            onClick={handleDocument}
-            disabled={loading}
-            className={`cursor-pointer rounded-md bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700 transition-all whitespace-nowrap ${
-              loading ? 'w-[200px]' : 'w-[120px]'
-            }`}
+              onClick={handleDocument}
+              disabled={loading}
+              className={`${
+                  loading ? 'w-[200px]' : 'w-[120px]'
+              } cursor-pointer rounded-lg bg-gradient-to-r 
+     from-indigo-500 to-blue-500 px-4 py-2 font-semibold text-white 
+     shadow-lg transition-all hover:from-indigo-600 hover:to-blue-600 
+     disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {loading ? 'Annotating your code...' : 'Submit'}
           </button>
@@ -140,40 +148,84 @@ export default function Home() {
 
         {/* The checkboxes for booleans */}
         <div className="mt-6 flex flex-col space-y-2">
-          <label className="flex items-center space-x-2">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
                 type="checkbox"
+                className="sr-only peer"
                 checked={modifyExistingDocumentation}
                 onChange={(e) => setModifyExistingDocumentation(e.target.checked)}
             />
-            <span>Modify existing docstrings</span>
+            <div
+                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
+               rounded-full peer peer-checked:bg-indigo-500
+               peer-checked:after:translate-x-5
+               peer-checked:after:border-white
+               after:content-[''] after:absolute after:top-[2px]
+               after:left-[2px] after:bg-white after:border-gray-300
+               after:border after:rounded-full after:h-5 after:w-5
+               after:transition-all"
+            ></div>
+            <span className="ml-3 text-sm text-gray-700">Modify existing documentation</span>
           </label>
 
-          <label className="flex items-center space-x-2">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
-              type="checkbox"
-              checked={doWriteArgumentsAnnotations}
-              onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
+                type="checkbox"
+                className="sr-only peer"
+                checked={doWriteArgumentsAnnotations}
+                onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
             />
-            <span>Write arguments annotation</span>
+            <div
+                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
+               rounded-full peer peer-checked:bg-indigo-500
+               peer-checked:after:translate-x-5
+               peer-checked:after:border-white
+               after:content-[''] after:absolute after:top-[2px]
+               after:left-[2px] after:bg-white after:border-gray-300
+               after:border after:rounded-full after:h-5 after:w-5
+               after:transition-all"
+            ></div>
+            <span className="ml-3 text-sm text-gray-700">Write arguments annotations</span>
           </label>
 
-          <label className="flex items-center space-x-2">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
-              type="checkbox"
-              checked={doWriteDocstrings}
-              onChange={(e) => setDoWriteDocstrings(e.target.checked)}
+                type="checkbox"
+                className="sr-only peer"
+                checked={doWriteDocstrings}
+                onChange={(e) => setDoWriteDocstrings(e.target.checked)}
             />
-            <span>Write docstrings</span>
+            <div
+                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
+               rounded-full peer peer-checked:bg-indigo-500
+               peer-checked:after:translate-x-5
+               peer-checked:after:border-white
+               after:content-[''] after:absolute after:top-[2px]
+               after:left-[2px] after:bg-white after:border-gray-300
+               after:border after:rounded-full after:h-5 after:w-5
+               after:transition-all"
+            ></div>
+            <span className="ml-3 text-sm text-gray-700">Write docstrings</span>
           </label>
 
-          <label className="flex items-center space-x-2">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
-              type="checkbox"
-              checked={doWriteComments}
-              onChange={(e) => setDoWriteComments(e.target.checked)}
+                type="checkbox"
+                className="sr-only peer"
+                checked={doWriteComments}
+                onChange={(e) => setDoWriteComments(e.target.checked)}
             />
-            <span>Write inline comments</span>
+            <div
+                className="w-11 h-6 bg-gray-200 peer-focus:outline-none
+               rounded-full peer peer-checked:bg-indigo-500
+               peer-checked:after:translate-x-5
+               peer-checked:after:border-white
+               after:content-[''] after:absolute after:top-[2px]
+               after:left-[2px] after:bg-white after:border-gray-300
+               after:border after:rounded-full after:h-5 after:w-5
+               after:transition-all"
+            ></div>
+            <span className="ml-3 text-sm text-gray-700">Write comments</span>
           </label>
         </div>
 
@@ -181,18 +233,28 @@ export default function Home() {
         <div className="mt-8 w-full max-w-[1200px] flex flex-col space-y-8 sm:flex-row sm:space-y-0 sm:space-x-8">
           {/* Input block */}
           <div className="sm:w-1/2">
-            <h2 className="mb-2 text-center text-xl font-bold">Input Code</h2>
+            <h2 className="text-2xl font-extrabold text-transparent
+               bg-clip-text bg-gradient-to-r from-green-500 to-blue-500
+               mb-4 text-center drop-shadow-sm">
+              Input Code
+            </h2>
+
             <CodeBlock
-              code={inputCode}
-              editable={!loading}
-              onChange={(val) => setInputCode(val)}
+                code={inputCode}
+                editable={!loading}
+                onChange={(val) => setInputCode(val)}
             />
           </div>
 
           {/* Output block */}
           <div className="sm:w-1/2">
-            <h2 className="mb-2 text-center text-xl font-bold">Output (Documentation)</h2>
-            <CodeBlock code={outputCode} editable={false} />
+            <h2 className="text-2xl font-extrabold text-transparent
+               bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500
+               mb-4 text-center drop-shadow-sm">
+              Output (Documentation)
+            </h2>
+
+            <CodeBlock code={outputCode} editable={false}/>
           </div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import os
+
 DEFAULT_MODEL_CHECKPOINT = "Qwen/Qwen2.5-Coder-32B-Instruct-fast"
 LONG_CONTEXT_MODEL_CHECKPOINT = "meta-llama/Llama-3.3-70B-Instruct-fast"
 DEFAULT_TOKENIZER_CHECKPOINT = "Qwen/Qwen2.5-Coder-32B-Instruct"
@@ -14,3 +16,9 @@ NUM_SYSTEM_PROMPT_TOKENS_DICT = {
 
 DEFAULT_MAX_TOKENS_DICT = {"annotations": 2048, "docstrings": 4096, "comments": 2048}
 MAX_MAX_TOKENS_DICT = {"annotations": 2048, "docstrings": 4096, "comments": 2048}
+
+BASE_URL = (
+    os.getenv("NEBIUS_BASE_URL")
+    or os.getenv("OPENAI_BASE_URL")
+    or "https://api.studio.nebius.ai/v1"
+)

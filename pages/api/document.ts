@@ -5,7 +5,15 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { inputCode, outputCode, model, apiKey,  modifyExistingDocumentation, doWriteArgumentsAnnotations, doWriteDocstrings, doWriteComments} =
+    const {
+      inputCode,
+      model,
+      modifyExistingDocumentation,
+      doWriteArgumentsAnnotations,
+      doWriteDocstrings,
+      doWriteComments,
+      // apiKey
+    } =
       (await req.json()) as CodeBody;
 
     const response = await fetch('http://localhost:4000/document', {
@@ -20,6 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
         do_write_arguments_annotations: doWriteArgumentsAnnotations,
         do_write_docstrings: doWriteDocstrings,
         do_write_comments: doWriteComments,
+        // api_key: apiKey
       }),
     });
 

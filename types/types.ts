@@ -2,13 +2,12 @@ export type NebiusModel = 'Qwen/Qwen2.5-Coder-32B-Instruct-fast' | 'deepseek-ai/
 
 export interface CodeBody {
   inputCode: string;
-  outputCode: string;
   model: NebiusModel;
-  apiKey: string;
   modifyExistingDocumentation: boolean;
   doWriteArgumentsAnnotations: boolean;
   doWriteDocstrings: boolean;
   doWriteComments: boolean;
+  apiKey: string;
 }
 
 export interface DocumentResponse {

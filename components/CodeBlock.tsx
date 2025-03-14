@@ -1,5 +1,5 @@
 import { StreamLanguage } from '@codemirror/language';
-import { go } from '@codemirror/legacy-modes/mode/go';
+import { python } from '@codemirror/legacy-modes/mode/python';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { FC, useEffect, useState } from 'react';
@@ -41,7 +41,7 @@ export const CodeBlock: FC<Props> = ({
               editable={editable}
               value={code}
               minHeight="500px"
-              extensions={[StreamLanguage.define(go)]}
+              extensions={[StreamLanguage.define(python)]}
               theme={githubLight}
               onChange={(value) => onChange(value)}
               className="bg-white"
