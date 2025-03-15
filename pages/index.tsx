@@ -6,7 +6,8 @@ import { ModelSelect } from '@/components/ModelSelect';
 import { NebiusModel } from '@/types/types';
 import { CodeBody } from '@/types/types';
 import { Header } from '@/components/Header';
-import { Button, Checkbox, Text, useLayoutContext } from '@gravity-ui/uikit';
+import { Footer } from '@/components/Footer';
+import { Button, Checkbox, Switch, Text, useLayoutContext } from '@gravity-ui/uikit';
 import styles from '@/styles/Home.module.css';
 
 export default function Home() {
@@ -129,7 +130,7 @@ export default function Home() {
           <div className={styles.controls}>
             <ModelSelect model={model} onChange={(val) => setModel(val)} />
             <Button
-              view="action"
+              view="normal"
               size={isMediaActive("l") ? "xl" : "m"}
               loading={loading}
               onClick={handleDocument}
@@ -140,30 +141,34 @@ export default function Home() {
           </div>
 
           <div className={styles.checkboxes}>
-            <Checkbox
+            <Switch
               checked={modifyExistingDocumentation}
               onChange={(e) => setModifyExistingDocumentation(e.target.checked)}
+              className={styles.nebiusSwitch}
             >
               Modify existing documentation
-            </Checkbox>
-            <Checkbox
+            </Switch>
+            <Switch
               checked={doWriteArgumentsAnnotations}
               onChange={(e) => setDoWriteArgumentsAnnotations(e.target.checked)}
+              className={styles.nebiusSwitch}
             >
               Write arguments annotations
-            </Checkbox>
-            <Checkbox
+            </Switch>
+            <Switch
               checked={doWriteDocstrings}
               onChange={(e) => setDoWriteDocstrings(e.target.checked)}
+              className={styles.nebiusSwitch}
             >
               Write docstrings
-            </Checkbox>
-            <Checkbox
+            </Switch>
+            <Switch
               checked={doWriteComments}
               onChange={(e) => setDoWriteComments(e.target.checked)}
+              className={styles.nebiusSwitch}
             >
               Write comments
-            </Checkbox>
+            </Switch>
           </div>
 
           <div className={styles.codeBlocks}>
@@ -180,7 +185,7 @@ export default function Home() {
 
             <div className={styles.codeBlock}>
               <Text variant="display-2" as="h2" className={styles.codeBlockTitle}>
-                Output Code
+                Documented Code
               </Text>
               <CodeBlock
                 code={outputCode}
@@ -190,6 +195,8 @@ export default function Home() {
             </div>
           </div>
         </main>
+        
+        <Footer />
       </div>
     </>
   );

@@ -3,7 +3,7 @@ import { python } from '@codemirror/legacy-modes/mode/python';
 import { githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { FC, useEffect, useState } from 'react';
-import { Button } from '@gravity-ui/uikit';
+import { Button, Text } from '@gravity-ui/uikit';
 import { Copy } from '@gravity-ui/icons';
 import styles from './CodeBlock.module.css';
 
@@ -28,20 +28,27 @@ export const CodeBlock: FC<Props> = ({
     return () => clearTimeout(timeout);
   }, [copyText]);
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopyText('Copied!');
+  };
+
   return (
     <div className={styles.container}>
-      <Button
-        view="flat"
-        size="s"
-        className={styles.copyButton}
-        onClick={() => {
-          navigator.clipboard.writeText(code);
-          setCopyText('Copied!');
-        }}
-      >
-        <Copy width={16} height={16} />
-        {copyText}
-      </Button>
+      <div className={styles.codeHeader}>
+        <Text variant="body-2" className={styles.codeTitle}>
+          {editable ? 'Your code' : 'Generated code'}
+        </Text>
+        <Button
+          view="outlined"
+          size="s"
+          className={styles.copyButton}
+          onClick={handleCopy}
+        >
+          <Copy width={16} height={16} />
+          {copyText}
+        </Button>
+      </div>
 
       <CodeMirror
         editable={editable}
