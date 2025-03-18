@@ -1,14 +1,13 @@
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import { CodeBlock } from '@/components/CodeBlock';
-// import { APIKeyInput } from '@/components/APIKeyInput';
-import { ModelSelect } from '@/components/ModelSelect';
-import { NebiusModel } from '@/types/types';
-import { CodeBody } from '@/types/types';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+import { CodeBlock, Footer, Header } from '@/components';
+// import { APIKeyInput } from '@/components';
+import { ModelSelect } from '@/components';
+import { NebiusModel, CodeBody } from '@/types';
 import { Button, Checkbox, Switch, Text, useLayoutContext } from '@gravity-ui/uikit';
 import styles from '@/styles/Home.module.css';
+import { documentCode } from '@/lib';
+import { MODEL_OPTIONS } from '@/config/models';
 
 export default function Home() {
   const { isMediaActive } = useLayoutContext();
@@ -63,49 +62,16 @@ export default function Home() {
         doWriteArgumentsAnnotations,
         doWriteDocstrings,
         doWriteComments,
-        apiKey, // not explicitly needed by your local server, but included in the type
+        apiKey,
       };
 
-      const response = await fetch('/api/document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        setLoading(false);
-        alert('Error calling backend /api/document.');
-        return;
-      }
-
-      // SSE streaming response
-      const reader = response.body?.getReader();
-      if (!reader) {
-        setLoading(false);
-        alert('No readable stream returned by the server.');
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let done = false;
-      let docString = '';
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (value) {
-          const chunkValue = decoder.decode(value);
-          docString = chunkValue; // Instead of accumulating, store only the latest chunk
-          setOutputCode(chunkValue); // Set state with the latest response
-        }
-      }
-
-
+      const response = await documentCode(body);
+      setOutputCode(response.code);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred while documenting the code. Please try again.');
+    } finally {
       setLoading(false);
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-      alert('Error streaming from backend.');
     }
   };
 

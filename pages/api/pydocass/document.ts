@@ -1,4 +1,4 @@
-import { CodeBody, DocumentResponse } from '@/types/types';
+import { CodeBody, DocumentResponse } from '@/types';
 export const config = {
   runtime: 'edge',
 };

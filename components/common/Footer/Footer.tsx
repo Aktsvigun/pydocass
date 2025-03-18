@@ -1,6 +1,6 @@
 import { Text } from "@gravity-ui/uikit";
 import styles from "./Footer.module.css";
-import { ThemeSwitcher } from "./ThemeSwitcher";
+import { ThemeSwitcher } from "../ThemeSwitcher";
 
 export const Footer = () => {
   return (
