@@ -56,6 +56,48 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
+## Docker Support
+
+The application includes Docker configuration for both development and production environments.
+
+### Development
+
+To start the application in development mode with Docker:
+
+```bash
+# Set up your environment variables first
+cp .env.local.example .env.local
+# Edit .env.local to add your API key
+
+# Start the development container
+docker-compose -f docker-compose.dev.yml up --build
+```
+
+This configuration:
+- Uses node:20-alpine as the base image
+- Mounts your local code as a volume for hot reloading
+- Runs the application in development mode with `npm run dev`
+- Exposes port 3000
+
+### Production
+
+To build and run the application for production:
+
+```bash
+# Set up your environment variables
+cp .env.local.example .env.local
+# Edit .env.local to add your API key
+
+# Build and start the production container
+docker-compose up --build
+```
+
+This configuration:
+- Uses node:20-alpine as the base image
+- Builds the application with `npm run build`
+- Runs the application in production mode with `npm start`
+- Exposes port 3000
+
 ## API Documentation
 
 The application uses the following API endpoints:

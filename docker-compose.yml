@@ -1,17 +1,12 @@
-version: '3.8'
-
 services:
-  ai-code-translator:
+  pydocass:
     build: .
-    container_name: ai_code_translator
+    container_name: pydocass
     ports:
-      - '3001:3000'
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - '3000:3000'
     environment:
-      - NODE_ENV=development
-    command: npm run dev
+      - NODE_ENV=production
+      - NEBIUS_API_KEY=${NEBIUS_API_KEY}
     restart: always
     security_opt:
       - no-new-privileges:true
