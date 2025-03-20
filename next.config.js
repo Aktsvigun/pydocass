@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@gravity-ui/uikit'],
+  output: 'standalone',
   webpack(config) {
     // SVG handling
     config.module.rules.push({

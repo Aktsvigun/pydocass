@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime
 from argparse import ArgumentParser
 
@@ -9,6 +10,7 @@ from pydocass import document_python_code
 from pydocass.connection import submit_record
 from pydocass.utils.utils import format_code_with_black, get_client
 
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -19,7 +21,12 @@ def document_code():
     data = request.json
     code = rf"{data.get('code', '')}"
     in_time = datetime.now()
-    submit_record(table="inputs", in_time=in_time, in_code=code)
+    
+    # Try to submit record but don't fail if database is unavailable
+    try:
+        submit_record(table="inputs", in_time=in_time, in_code=code)
+    except Exception as e:
+        logging.error(f"Database error (non-critical): {str(e)}")
 
     client = get_client(data)
 

@@ -1,11 +1,26 @@
 services:
-  pydocass:
+  frontend:
     build: .
-    container_name: pydocass
+    container_name: pydocass_frontend
     ports:
       - '3000:3000'
     environment:
       - NODE_ENV=production
+      - NEBIUS_API_KEY=${NEBIUS_API_KEY}
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./app/api/pydocass
+      dockerfile: Dockerfile
+    container_name: pydocass_backend
+    ports:
+      - '4000:4000'
+    environment:
       - NEBIUS_API_KEY=${NEBIUS_API_KEY}
     restart: always
     security_opt:

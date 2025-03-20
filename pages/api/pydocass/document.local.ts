@@ -4,19 +4,8 @@ export const config = {
 };
 
 /**
- * Get the backend API URL based on environment
+ * For local development without Docker
  */
-function getBackendUrl(): string {
-  // Attempt to determine if we're running in a Docker environment
-  // In local development, use localhost
-  try {
-    return 'http://localhost:4000'; // Default to localhost for local development
-  } catch (error) {
-    console.error('Error determining backend URL:', error);
-    return 'http://localhost:4000'; // Fallback to localhost
-  }
-}
-
 const handler = async (req: Request): Promise<Response> => {
   try {
     const {
@@ -30,10 +19,8 @@ const handler = async (req: Request): Promise<Response> => {
     } =
       (await req.json()) as CodeBody;
 
-    // Use backend URL from environment or default
-    const backendUrl = getBackendUrl();
-    
-    const response = await fetch(`${backendUrl}/document`, {
+    // For local development, use localhost
+    const response = await fetch('http://localhost:4000/document', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,4 +52,4 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-export default handler;
+export default handler; 

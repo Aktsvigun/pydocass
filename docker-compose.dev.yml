@@ -1,9 +1,9 @@
 services:
-  pydocass-dev:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: pydocass_dev
+    container_name: pydocass_frontend_dev
     ports:
       - '3000:3000'
     volumes:
@@ -13,6 +13,23 @@ services:
       - NODE_ENV=development
       - NEBIUS_API_KEY=${NEBIUS_API_KEY}
     command: npm run dev
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./app/api/pydocass
+      dockerfile: Dockerfile
+    container_name: pydocass_backend_dev
+    ports:
+      - '4000:4000'
+    volumes:
+      - ./app/api/pydocass:/app
+    environment:
+      - NEBIUS_API_KEY=${NEBIUS_API_KEY}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true 
