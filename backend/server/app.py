@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 
-from pydocass import document_python_code
+from pydocass.core.document_python_code import document_python_code
 from pydocass.connection import submit_record
 from pydocass.utils.utils import format_code_with_black, get_client
 
