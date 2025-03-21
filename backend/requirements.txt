@@ -4,7 +4,7 @@ pdfplumber==0.11.4
 requests==2.32.3
 sqlalchemy==2.0.36
 streamlit==1.39.0
-transformers==4.47.1
+transformers==4.48.0
 psycopg2-binary==2.9.10
 flask==3.1.0
 flask-cors==5.0.1
