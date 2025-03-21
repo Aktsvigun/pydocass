@@ -14,7 +14,6 @@
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  box-sizing: border-box;
 }
 
 @media (min-width: 680px) {
@@ -155,32 +154,27 @@ html .nebiusSwitch :global(*[class*="checked"]) {
   display: flex;
   flex-direction: column;
   gap: var(--g-spacing-8);
-  max-width: 1200px;
 }
 
 @media (min-width: 768px) {
   .codeBlocks {
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
-    flex-wrap: nowrap;
   }
 }
 
 .codeBlock {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--g-spacing-4);
   width: 100%;
-  min-width: 0; /* Prevent flex items from overflowing */
 }
 
 @media (min-width: 768px) {
   .codeBlock {
-    width: calc(50% - var(--g-spacing-4));
-    min-width: calc(50% - var(--g-spacing-4));
-    max-width: calc(50% - var(--g-spacing-4));
-    flex: 0 0 auto;
+    width: calc(50% - var(--g-spacing-4)); /* Equal width minus half the gap */
+    min-width: 400px; /* Minimum width to prevent too narrow blocks */
+    flex: 0 0 auto; /* Prevent flex growing/shrinking */
   }
 }
 
@@ -217,15 +211,4 @@ html .nebiusSwitch :global(*[class*="checked"]) {
 [data-theme='dark'] .nebiusCheckbox :global(.g-checkbox__icon.g-checkbox__icon_checked) {
   background-color: #027bf3 !important;
   border-color: #027bf3 !important;
-}
-
-@media (max-width: 767px) {
-  .codeBlocks {
-    margin-top: var(--g-spacing-6);
-    gap: var(--g-spacing-6);
-  }
-  
-  .codeBlock {
-    width: 100%;
-  }
 } 

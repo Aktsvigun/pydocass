@@ -50,34 +50,25 @@ export const CodeBlock: FC<Props> = ({
         </Button>
       </div>
 
-      <CodeMirror
-        editable={editable}
-        value={code}
-        minHeight="500px"
-        height="500px"
-        width="100%"
-        extensions={[StreamLanguage.define(python)]}
-        theme={githubLight}
-        onChange={(value) => onChange(value)}
-        className={styles.editor}
-        basicSetup={{
-          lineNumbers: true,
-          highlightActiveLine: true,
-          highlightSpecialChars: true,
-          foldGutter: false,
-          drawSelection: true,
-          dropCursor: true,
-          allowMultipleSelections: true,
-          indentOnInput: true,
-          syntaxHighlighting: true,
-          bracketMatching: true,
-          closeBrackets: true,
-          autocompletion: true,
-          rectangularSelection: true,
-          crosshairCursor: true,
-          lineWrapping: true
-        }}
-      />
+      <div className={styles.editor}>
+        <CodeMirror
+          editable={editable}
+          value={code}
+          height="100%"
+          extensions={[StreamLanguage.define(python)]}
+          theme={githubLight}
+          onChange={(value) => onChange(value)}
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            highlightActiveLine: true,
+            dropCursor: true,
+            allowMultipleSelections: true,
+            indentOnInput: true,
+            bracketMatching: true,
+          }}
+        />
+      </div>
     </div>
   );
 };
