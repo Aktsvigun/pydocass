@@ -15,6 +15,7 @@ from ..utils.utils import (
     _get_model_checkpoint_max_tokens,
     _extract_llm_response_data,
 )
+from ..utils.constants import DEFAULT_TOP_P_ANNOTATIONS, DEFAULT_MODEL_CHECKPOINT
 from .write_docstrings import _get_docstring_position_for_node_with_no_docstring
 
 
@@ -43,7 +44,7 @@ def write_arguments_annotations(
     client: Client,
     tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
-    model_checkpoint: str | None = None,
+    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
 ):
     model_and_args = _create_pydantic_model_and_get_nodes_args(
         target_nodes_dict, modify_existing_documentation=modify_existing_documentation
@@ -68,7 +69,7 @@ def write_arguments_annotations(
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
-        top_p=0.5,
+        top_p=DEFAULT_TOP_P_ANNOTATIONS,
         max_tokens=max_tokens,
         response_format=pydantic_model,
         stream_options={"include_usage": True},

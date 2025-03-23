@@ -18,7 +18,7 @@ from ..utils.utils import (
     _get_model_checkpoint_max_tokens,
     _extract_llm_response_data,
 )
-
+from ..utils.constants import DEFAULT_TOP_P_DOCSTRINGS, DEFAULT_MODEL_CHECKPOINT
 
 def write_docstrings(
     target_nodes_dict: dict[
@@ -28,7 +28,7 @@ def write_docstrings(
     client: Client,
     tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
-    model_checkpoint: str = "Qwen/Qwen2.5-Coder-32B-Instruct-fast",
+    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
 ) -> str:
     if not modify_existing_documentation:
         existing_docstrings = [
@@ -60,7 +60,7 @@ def write_docstrings(
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
-        top_p=0.01,
+        top_p=DEFAULT_TOP_P_DOCSTRINGS,
         max_tokens=max_tokens,
         response_format=response_format,
         stream_options={"include_usage": True},
