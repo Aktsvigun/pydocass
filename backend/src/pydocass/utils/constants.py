@@ -17,6 +17,10 @@ NUM_SYSTEM_PROMPT_TOKENS_DICT = {
 DEFAULT_MAX_TOKENS_DICT = {"annotations": 2048, "docstrings": 4096, "comments": 2048}
 MAX_MAX_TOKENS_DICT = {"annotations": 2048, "docstrings": 4096, "comments": 2048}
 
+DEFAULT_TOP_P_ANNOTATIONS = 0.5
+DEFAULT_TOP_P_DOCSTRINGS = 0.01
+DEFAULT_TOP_P_COMMENTS = 0.01
+
 BASE_URL = (
     os.getenv("NEBIUS_BASE_URL")
     or os.getenv("OPENAI_BASE_URL")

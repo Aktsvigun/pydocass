@@ -13,14 +13,14 @@ from ..utils.utils import (
     _get_model_checkpoint_max_tokens,
     _extract_llm_response_data,
 )
-
+from ..utils.constants import DEFAULT_TOP_P_COMMENTS, DEFAULT_MODEL_CHECKPOINT
 
 def write_comments(
     code: str,
     client: Client,
     tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
-    model_checkpoint: str = "Qwen/Qwen2.5-Coder-32B-Instruct-fast",
+    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
 ) -> str:
     pydantic_model, lines_dict, splitlines, model_kwargs = _create_pydantic_model(code)
     # We reduced the schema with this "trick" in system prompt to add more examples.
@@ -46,7 +46,7 @@ def write_comments(
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
-        top_p=0.01,
+        top_p=DEFAULT_TOP_P_COMMENTS,
         max_tokens=max_tokens,
         response_format=pydantic_model,
         stream_options={"include_usage": True},
