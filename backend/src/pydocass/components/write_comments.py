@@ -1,8 +1,8 @@
 import json
 from openai import Client
-from pydantic import create_model, Field
+from pydantic import create_model, Field, BaseModel
 from typing import Any
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizerFast
 
 from ..utils.prompts import (
     MESSAGES_COMMENTS,
@@ -18,10 +18,11 @@ from ..utils.constants import DEFAULT_TOP_P_COMMENTS, DEFAULT_MODEL_CHECKPOINT
 def write_comments(
     code: str,
     client: Client,
-    tokenizer: PreTrainedTokenizer,
+    tokenizer: PreTrainedTokenizerFast,
     modify_existing_documentation: bool = False,
     model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
-) -> str:
+    use_streaming: bool = True,
+):
     pydantic_model, lines_dict, splitlines, model_kwargs = _create_pydantic_model(code)
     # We reduced the schema with this "trick" in system prompt to add more examples.
     # Hence, need to match the same format here.
@@ -43,6 +44,49 @@ def write_comments(
         model_checkpoint=model_checkpoint,
     )
     messages = list(MESSAGES_COMMENTS) + [{"role": "user", "content": user_prompt}]
+    
+    # Choose between streaming and non-streaming based on user preference
+    if use_streaming:
+        yield from _process_streaming_comments(
+            client=client,
+            model_checkpoint=model_checkpoint,
+            messages=messages,
+            max_tokens=max_tokens,
+            pydantic_model=pydantic_model,
+            lines_dict=lines_dict,
+            splitlines=splitlines,
+            schema=schema,
+            code=code,
+            modify_existing_documentation=modify_existing_documentation,
+        )
+    else:
+        yield from _process_non_streaming_comments(
+            client=client,
+            model_checkpoint=model_checkpoint,
+            messages=messages,
+            max_tokens=max_tokens,
+            pydantic_model=pydantic_model,
+            lines_dict=lines_dict,
+            splitlines=splitlines,
+            schema=schema,
+            code=code,
+            modify_existing_documentation=modify_existing_documentation,
+        )
+
+
+def _process_streaming_comments(
+    client: Client,
+    model_checkpoint: str,
+    messages: list,
+    max_tokens: int,
+    pydantic_model,
+    lines_dict: dict,
+    splitlines: list,
+    schema: dict,
+    code: str,
+    modify_existing_documentation: bool,
+):
+    """Process the comments completion request using streaming."""
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
@@ -112,7 +156,83 @@ def write_comments(
                                         line, id_line_in_splitlines + 1
                                     )
                 boundary = output_length
-    response_data = _extract_llm_response_data(chunk)
+        response_data = _extract_llm_response_data(chunk)
+        yield code, response_data
+
+
+def _process_non_streaming_comments(
+    client: Client,
+    model_checkpoint: str,
+    messages: list,
+    max_tokens: int,
+    pydantic_model: BaseModel,
+    lines_dict: dict,
+    splitlines: list,
+    schema: dict,
+    code: str,
+    modify_existing_documentation: bool,
+):
+    """Process the comments completion request without streaming."""
+    response = client.beta.chat.completions.parse(
+        model=model_checkpoint,
+        messages=messages,
+        top_p=DEFAULT_TOP_P_COMMENTS,
+        max_tokens=max_tokens,
+        response_format=pydantic_model,
+    )
+    
+    comments_data = eval(response.choices[0].message.content)
+    
+    if not comments_data:
+        # If we couldn't parse the JSON, yield the original code
+        yield code
+        return
+    
+    id_line_in_splitlines = -1
+    
+    # Process all comments at once
+    for key, value in comments_data.items():
+        if key not in lines_dict:
+            continue
+            
+        # Get the line to add the comment to
+        line = lines_dict[key]
+        
+        if value or ("default" in schema[key] and modify_existing_documentation):
+            # Find the location of comments for this line
+            ids_comment_lines, line_has_inline_comment, id_line_in_splitlines = _find_ids_comments_for_line(
+                line=line,
+                splitlines=splitlines,
+                next_line_index_in_code=id_line_in_splitlines + 1,
+            )
+            
+            # If existing comments should not be modified, continue
+            if (len(ids_comment_lines) > 0 or line_has_inline_comment) and not modify_existing_documentation:
+                continue
+                
+            # Insert comment to the code
+            splitlines, id_line_in_splitlines = _update_line_comment_in_code(
+                new_value=value,
+                line=line,
+                splitlines=splitlines,
+                id_line_in_splitlines=id_line_in_splitlines,
+                ids_comment_lines=ids_comment_lines,
+                line_has_inline_comment=line_has_inline_comment,
+            )
+        else:
+            id_line_in_splitlines = splitlines.index(line, id_line_in_splitlines + 1)
+    
+    # Generate the final code with all comments
+    code = _restore_code_from_numerated_lines(splitlines)
+    
+    # Create response data from the usage info
+    response_data = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+    
+    # Yield the final code with all comments added
     yield code, response_data
 
 

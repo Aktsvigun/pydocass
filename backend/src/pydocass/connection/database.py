@@ -16,7 +16,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 db_connection = str(os.getenv("DB_CONNECTION", None))
-if db_connection is not None:
+if db_connection is not None and db_connection != "None":
     engine = create_engine(db_connection, pool_pre_ping=True, pool_recycle=3600)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import os
 from typing import Union, Literal, Any
-from transformers import PreTrainedTokenizer, AutoTokenizer
+from transformers import PreTrainedTokenizerFast, AutoTokenizer
 import warnings
 import black
 
@@ -98,7 +98,7 @@ def _check_no_duplicating_methods(nodes: list[ast.AST]):
 
 def _get_model_checkpoint_max_tokens(
     user_prompt: str,
-    tokenizer: PreTrainedTokenizer,
+    tokenizer: PreTrainedTokenizerFast,
     task: Literal["annotations", "docstrings", "comments"],
     model_checkpoint: str | None = None,
 ):
@@ -143,13 +143,13 @@ def _extract_llm_response_data(chunk: ChunkEvent):
     }
 
 
-def _load_tokenizer(model_checkpoint: str) -> PreTrainedTokenizer:
+def _load_tokenizer(model_checkpoint: str) -> PreTrainedTokenizerFast:
     cache_dir = os.getenv("HF_HOME", None)
     try:
-        return AutoTokenizer.from_pretrained(model_checkpoint, cache_dir=cache_dir)
+        return AutoTokenizer.from_pretrained(model_checkpoint, cache_dir=cache_dir, use_fast=True)
     except:
         return AutoTokenizer.from_pretrained(
-            DEFAULT_TOKENIZER_CHECKPOINT, cache_dir=cache_dir
+            DEFAULT_TOKENIZER_CHECKPOINT, cache_dir=cache_dir, use_fast=True
         )
 
 
