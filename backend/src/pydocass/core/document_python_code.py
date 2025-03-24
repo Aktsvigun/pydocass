@@ -7,13 +7,13 @@ from datetime import datetime
 from openai import Client
 from typing import Generator
 
-from transformers import PreTrainedTokenizer
+from transformers import PreTrainedTokenizerFast
 
 from ..components import (
     write_docstrings,
     write_arguments_annotations,
     write_comments,
-    potentially_add_class_to_typing_import,
+    maybe_add_class_to_typing_import,
 )
 from ..connection import submit_record
 from ..utils.utils import (
@@ -21,7 +21,7 @@ from ..utils.utils import (
     _check_no_duplicating_methods,
     _load_tokenizer,
 )
-
+from ..utils.constants import DEFAULT_MODEL_CHECKPOINT
 
 def document_python_code(
     code: str,
@@ -30,32 +30,11 @@ def document_python_code(
     do_write_arguments_annotation: bool = True,
     do_write_docstrings: bool = True,
     do_write_comments: bool = True,
-    model_checkpoint: str | None = None,
-    tokenizer: PreTrainedTokenizer | None = None,
+    use_streaming: bool = True,
+    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
+    tokenizer: PreTrainedTokenizerFast | None = None,
     in_time: datetime | None = None,
 ) -> Generator[str, None, None]:
-    """
-    Generates and adds docstrings to Python code using an OpenAI client.
-    The function processes the code to annotate arguments and add docstrings to functions, classes, and methods.
-    It also ensures that necessary typing imports are included.
-
-    Args:
-        code (`str`):
-            The Python code as a string to which docstrings and argument annotations will be added.
-        client (`Client`):
-            An instance of the OpenAI client used to generate docstrings and annotations.
-        modify_existing_annotation (`bool`, *optional*, defaults to `False`):
-            If `True`, existing annotations and docstrings will be modified.
-            If `False`, existing annotations and docstrings will be preserved unless they are empty.
-        model_checkpoint (`str`, *optional*, defaults to `'Qwen/Qwen2.5-Coder-32B-Instruct-fast'`):
-            The model checkpoint to use for generating docstrings and annotations.
-
-    Yields:
-        `str`: The updated code with added or modified docstrings and argument annotations.
-
-    Raises:
-        `SyntaxError`: If the generated code is not valid Python syntax.
-    """
     # Save the initial time for recording purposes
     if in_time is None:
         in_time = datetime.now()
@@ -89,6 +68,7 @@ def document_python_code(
             tokenizer=tokenizer,
             modify_existing_documentation=modify_existing_documentation,
             model_checkpoint=model_checkpoint,
+            use_streaming=use_streaming,
         ):
             if isinstance(output, str):
                 yield output
@@ -99,7 +79,8 @@ def document_python_code(
             # If there are classes from the `typing` package that were used for annotation but not imported,
             # add them to the imports
             for typing_class in required_typing_imports:
-                code = potentially_add_class_to_typing_import(code, tree, typing_class)
+                import pdb; pdb.set_trace()
+                code = maybe_add_class_to_typing_import(code, tree, typing_class)
                 yield code
             # Replace spaces with tabs for consistent formatting
             code = code.replace(" " * 4, "\t")
@@ -120,6 +101,7 @@ def document_python_code(
             tokenizer=tokenizer,
             modify_existing_documentation=modify_existing_documentation,
             model_checkpoint=model_checkpoint,
+            use_streaming=use_streaming,
         ):
             if isinstance(output, str):
                 yield output
@@ -134,6 +116,7 @@ def document_python_code(
             tokenizer=tokenizer,
             modify_existing_documentation=modify_existing_documentation,
             model_checkpoint=model_checkpoint,
+            use_streaming=use_streaming,
         ):
             if isinstance(output, str):
                 yield output

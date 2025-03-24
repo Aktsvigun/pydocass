@@ -13,6 +13,8 @@ from pydocass.utils.utils import format_code_with_black, get_client
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+USE_STREAMING = True
+
 
 @app.route("/document", methods=["POST"])
 def document_code():
@@ -35,6 +37,7 @@ def document_code():
                 do_write_comments=data["do_write_comments"],
                 in_time=in_time,
                 model_checkpoint=data["model_checkpoint"],
+                use_streaming=USE_STREAMING,
             ):
                 yield chunk
             yield format_code_with_black(chunk)

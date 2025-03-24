@@ -29,7 +29,8 @@ def write_docstrings(
     tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
     model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
-) -> str:
+    use_streaming: bool = True,
+):
     if not modify_existing_documentation:
         existing_docstrings = [
             _extract_docstring(node)
@@ -57,6 +58,40 @@ def write_docstrings(
     )
     messages = _create_messages(use_extended_prompt)
     messages += [{"role": "user", "content": user_prompt}]
+    
+    # Choose between streaming and non-streaming based on user preference
+    if use_streaming:
+        yield from _process_streaming_docstrings(
+            client=client,
+            model_checkpoint=model_checkpoint,
+            messages=messages,
+            max_tokens=max_tokens,
+            response_format=response_format,
+            code=code,
+            target_nodes_dict=target_nodes_dict,
+        )
+    else:
+        yield from _process_non_streaming_docstrings(
+            client=client,
+            model_checkpoint=model_checkpoint,
+            messages=messages,
+            max_tokens=max_tokens,
+            response_format=response_format,
+            code=code,
+            target_nodes_dict=target_nodes_dict,
+        )
+
+
+def _process_streaming_docstrings(
+    client: Client,
+    model_checkpoint: str,
+    messages: list,
+    max_tokens: int,
+    response_format: BaseModel,
+    code: str,
+    target_nodes_dict: dict,
+):
+    """Process the docstrings completion request using streaming."""
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
@@ -115,6 +150,86 @@ def write_docstrings(
             boundary = output_length
         response_data = _extract_llm_response_data(chunk)
         yield code, response_data
+
+
+def _process_non_streaming_docstrings(
+    client: Client,
+    model_checkpoint: str,
+    messages: list,
+    max_tokens: int,
+    response_format: BaseModel,
+    code: str,
+    target_nodes_dict: dict,
+):
+    """Process the docstrings completion request without streaming."""
+    response = client.beta.chat.completions.parse(
+        model=model_checkpoint,
+        messages=messages,
+        top_p=DEFAULT_TOP_P_DOCSTRINGS,
+        max_tokens=max_tokens,
+        response_format=response_format,
+    )
+    
+    # Extract the response content as JSON
+    docstrings_data = eval(response.choices[0].message.content)
+    
+    if not docstrings_data:
+        # If we couldn't parse the JSON, yield the original code
+        yield code
+        return
+    
+    lines_shift = 0
+    
+    # Process all docstrings at once
+    for key, value in docstrings_data.items():
+        if not value:
+            continue
+            
+        # Get the function or class to add the docstring to
+        func = _get_function_by_key(key, target_nodes_dict)
+        
+        # Format the docstring with proper line breaks and tabs
+        value = (
+            value.replace("\\\\n", "\n")
+            .replace("\\\\t", "\t")
+            .replace("\\n", "\n")
+            .replace("\\t", "\t")
+        )
+        
+        num_tabs_to_use = (
+            code.splitlines()[func.lineno + lines_shift - 1]
+            .replace(" " * 4, "\t")
+            .count("\t")
+            + 1
+        )
+        
+        joiner = "\n" + "\t" * num_tabs_to_use
+        value = "".join(joiner + x for x in value.split("\n"))
+        
+        # Store the old code to calculate the line difference
+        old_code = code
+        
+        # Update the code with the new docstring
+        code = _update_code_with_node_docstring(
+            generated_docstring=value,
+            function=func,
+            code=code,
+            lines_shift=lines_shift,
+            num_tabs_to_use=num_tabs_to_use,
+        )
+        
+        # Update the line shift for the next docstring
+        lines_shift += len(code.splitlines()) - len(old_code.splitlines())
+    
+    # Create response data from the usage info
+    response_data = {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+    
+    # Yield the final code with all docstrings added
+    yield code, response_data
 
 
 def _update_code_with_node_docstring(

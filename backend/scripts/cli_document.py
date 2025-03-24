@@ -11,6 +11,9 @@ from pydocass.utils.utils import format_code_with_black, get_client
 from pydocass.utils.constants import DEFAULT_MODEL_CHECKPOINT
 
 
+DEFAULT_USE_STREAMING = os.getenv("USE_STREAMING", "false").lower() == "true"
+
+
 def main():
     """Run the documentation assistant from the command line."""
     parser = argparse.ArgumentParser(
@@ -56,6 +59,14 @@ def main():
     )
     
     parser.add_argument(
+        "--use-streaming", 
+        action="store_true",
+        default=DEFAULT_USE_STREAMING,
+        dest="use_streaming",
+        help="Use streaming for the documentation process."
+    )
+    
+    parser.add_argument(
         "--model", 
         default=None,
         dest="model_checkpoint",
@@ -74,7 +85,6 @@ def main():
     )
     
     args = parser.parse_args()
-    
     # Read the input code
     if args.input_file == '-':
         code = sys.stdin.read()
@@ -88,16 +98,7 @@ def main():
         except Exception as e:
             print(f"Error reading input file: {str(e)}", file=sys.stderr)
             sys.exit(1)
-    
-    # Set up client data for API calls
-    data = {
-        "api_key": args.api_key,
-        "modify_existing_documentation": args.modify_existing_documentation,
-        "do_write_arguments_annotations": args.do_write_arguments_annotations,
-        "do_write_docstrings": args.do_write_docstrings,
-        "do_write_comments": args.do_write_comments,
-        "model_checkpoint": args.model_checkpoint,
-    }
+
     
     try:
         # Record input for tracking
@@ -105,7 +106,7 @@ def main():
         submit_record(table="inputs", in_time=in_time, in_code=code)
         
         # Get the OpenAI/Nebius client
-        client = get_client(data)
+        client = get_client({"api_key": args.api_key})
         
         # Process the code
         documented_code = None
@@ -120,6 +121,7 @@ def main():
             do_write_arguments_annotation=args.do_write_arguments_annotations,
             do_write_docstrings=args.do_write_docstrings,
             do_write_comments=args.do_write_comments,
+            use_streaming=args.use_streaming,
             in_time=in_time,
             model_checkpoint=args.model_checkpoint,
         ):
@@ -143,8 +145,11 @@ def main():
             print(documented_code)
             
     except Exception as e:
+        import sys, pdb
         print(f"Error: {str(e)}", file=sys.stderr)
-        sys.exit(1)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        pdb.post_mortem(exc_traceback)
+        # sys.exit(1)
 
 
 if __name__ == "__main__":
