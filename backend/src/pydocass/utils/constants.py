@@ -1,8 +1,8 @@
 import os
 
-DEFAULT_MODEL_CHECKPOINT = "Qwen/Qwen2.5-Coder-32B-Instruct-fast"
-LONG_CONTEXT_MODEL_CHECKPOINT = "meta-llama/Llama-3.3-70B-Instruct-fast"
-DEFAULT_TOKENIZER_CHECKPOINT = "Qwen/Qwen2.5-Coder-32B-Instruct"
+DEFAULT_MODEL_CHECKPOINT = "deepseek-ai/DeepSeek-V3"  #"Qwen/Qwen2.5-Coder-32B-Instruct-fast"
+LONG_CONTEXT_MODEL_CHECKPOINT = "deepseek-ai/DeepSeek-V3"  #"meta-llama/Llama-3.3-70B-Instruct-fast"
+DEFAULT_TOKENIZER_CHECKPOINT = "deepseek-ai/DeepSeek-V3"  #"Qwen/Qwen2.5-Coder-32B-Instruct"
 
 MAX_TOTAL_TOKENS = 31_000
 MAX_TOKENS_WITH_LONG_CONTEXT = 8_092
