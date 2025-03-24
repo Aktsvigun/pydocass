@@ -79,7 +79,7 @@ def document_python_code(
             # If there are classes from the `typing` package that were used for annotation but not imported,
             # add them to the imports
             for typing_class in required_typing_imports:
-                code = maybe_add_class_to_typing_import(code, tree, typing_class)
+                code = maybe_add_class_to_typing_import(code, typing_class)
                 yield code
             # Replace spaces with tabs for consistent formatting
             code = code.replace(" " * 4, "\t")
