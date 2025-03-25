@@ -1,6 +1,6 @@
 # Import the `ast` module for abstract syntax tree parsing
 import ast
-
+import logging
 from datetime import datetime
 
 # Imports solely for annotation
@@ -22,6 +22,8 @@ from ..utils.utils import (
     _load_tokenizer,
 )
 from ..utils.constants import DEFAULT_MODEL_CHECKPOINT
+
+log = logging.getLogger(__name__)
 
 def document_python_code(
     code: str,
@@ -125,14 +127,17 @@ def document_python_code(
     # Make sure the generated code has valid Python syntax
     ast.parse(code)
     # Save to database
-    submit_record(
-        table="responses",
-        in_code=in_code,
-        out_code=code,
-        in_time=in_time,
-        out_time=datetime.now(),
-        **{"annotations_" + k: v for k, v in annotations_response_data.items()},
-        **{"docstrings_" + k: v for k, v in docstrings_response_data.items()},
-        **{"comments_" + k: v for k, v in comments_response_data.items()},
-    )
+    try:
+        submit_record(
+            table="responses",
+            in_code=in_code,
+            out_code=code,
+            in_time=in_time,
+            out_time=datetime.now(),
+            **{"annotations_" + k: v for k, v in annotations_response_data.items()},
+            **{"docstrings_" + k: v for k, v in docstrings_response_data.items()},
+            **{"comments_" + k: v for k, v in comments_response_data.items()},
+        )
+    except Exception as e:
+        log.error("Error submitting record (non-critical): %s", e)
     yield code

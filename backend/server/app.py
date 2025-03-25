@@ -9,6 +9,10 @@ from pydocass.core.document_python_code import document_python_code
 from pydocass.connection import submit_record
 from pydocass.utils.utils import format_code_with_black, get_client
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -21,34 +25,28 @@ def document_code():
     data = request.json
     code = rf"{data.get('code', '')}"
     in_time = datetime.now()
-    submit_record(table="inputs", in_time=in_time, in_code=code)
+    try:
+        submit_record(table="inputs", in_time=in_time, in_code=code)
+    except Exception as e:
+        log.error("Error submitting record (non-critical): %s", e)
 
     client = get_client(data)
 
     def generate():
-        try:
-            chunk: str = code
-            for chunk in document_python_code(
-                code=code,
-                client=client,
-                modify_existing_documentation=data["modify_existing_documentation"],
-                do_write_arguments_annotation=data["do_write_arguments_annotations"],
-                do_write_docstrings=data["do_write_docstrings"],
-                do_write_comments=data["do_write_comments"],
-                in_time=in_time,
-                model_checkpoint=data["model_checkpoint"],
-                use_streaming=USE_STREAMING,
-            ):
-                yield chunk
-            yield format_code_with_black(chunk)
-
-        except Exception as e:
-            import pdb
-            import sys
-
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            pdb.post_mortem(exc_traceback)
-            yield f"Error: {str(e)}"
+        chunk: str = code
+        for chunk in document_python_code(
+            code=code,
+            client=client,
+            modify_existing_documentation=data["modify_existing_documentation"],
+            do_write_arguments_annotation=data["do_write_arguments_annotations"],
+            do_write_docstrings=data["do_write_docstrings"],
+            do_write_comments=data["do_write_comments"],
+            in_time=in_time,
+            model_checkpoint=data["model_checkpoint"],
+            use_streaming=USE_STREAMING,
+        ):
+            yield chunk
+        yield format_code_with_black(chunk)
 
     return Response(stream_with_context(generate()), mimetype="text/plain")
 

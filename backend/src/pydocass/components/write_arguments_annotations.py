@@ -1,5 +1,6 @@
 import ast
 import typing
+import time
 from typing import Union
 from openai import Client
 from pydantic import create_model, Field, BaseModel
@@ -194,17 +195,25 @@ def _process_non_streaming_completion(
     all_nodes_with_args: dict,
     modify_existing_documentation: bool,
 ):
-    """Process the completion request without streaming."""
-    response = client.beta.chat.completions.parse(
+    """
+    Process the completion request without streaming.
+    NB! Currently only supported for Anthropic with Instructor syntax
+    """
+    # Work-around for Anthropic models
+    import instructor
+    from anthropic import Anthropic
+    import os
+
+    api_key = os.getenv("ANTHROPIC_API_KEY", client.api_key)
+    client_anthropic = instructor.from_anthropic(client=Anthropic(api_key=api_key))
+    response = client_anthropic.messages.create(
         model=model_checkpoint,
         messages=messages,
         top_p=DEFAULT_TOP_P_ANNOTATIONS,
         max_tokens=max_tokens,
-        response_format=pydantic_model,
+        response_model=pydantic_model,
     )
-    
-    # Extract the response content as JSON
-    annotations_data = eval(response.choices[0].message.content)
+    annotations_data = response.dict()
     
     if not annotations_data:
         # If we couldn't parse the JSON, yield the original code
@@ -217,7 +226,6 @@ def _process_non_streaming_completion(
     lines_shift = 0
     
     # For each node in the response
-    import pdb; pdb.set_trace()
     for node_name, node_annotations in annotations_data.items():
         if node_name not in all_nodes_with_args:
             continue
@@ -264,10 +272,11 @@ def _process_non_streaming_completion(
                 
     # Final yield with the updated code and required imports
     response_data = {
-        "prompt_tokens": response.usage.prompt_tokens,
-        "completion_tokens": response.usage.completion_tokens,
-        "total_tokens": response.usage.total_tokens
+        "model": model_checkpoint,
+        "output": response.model_dump_json()
     }
+    # Current work-around to handle Anthropic limits
+    time.sleep(60)
     yield code, required_typing_imports, response_data
 
 
@@ -400,6 +409,9 @@ def _create_pydantic_model_and_get_args_for_node(
         model_name = f"{node_type.title()}{node_name.title()}"
     elif node_type == "method":
         class_name, method_name = node_name.split("-")
+        # Don't annotate the `__init__` methods
+        if method_name == "__init__":
+            return
         model_name = f"Class{class_name.title()}Method{method_name.title()}"
     else:
         raise NotImplementedError(f"Unsupported node type: {node_type}")

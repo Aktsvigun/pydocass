@@ -73,6 +73,8 @@ export default function Home() {
 
       if (!response.ok) {
         setLoading(false);
+        // TODO: add different handling based on the error. For bad code, 
+        // we need to show the error message to the user.
         alert('Error calling backend /api/document.');
         return;
       }
@@ -87,14 +89,12 @@ export default function Home() {
 
       const decoder = new TextDecoder();
       let done = false;
-      let docString = '';
 
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
         if (value) {
           const chunkValue = decoder.decode(value);
-          docString = chunkValue; // Instead of accumulating, store only the latest chunk
           setOutputCode(chunkValue); // Set state with the latest response
         }
       }
