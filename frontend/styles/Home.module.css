@@ -158,8 +158,9 @@ html .nebiusSwitch :global(*[class*="checked"]) {
 
 @media (min-width: 768px) {
   .codeBlocks {
-    flex-direction: column;
+    flex-direction: row;
     justify-content: space-between;
+    align-items: flex-start;
   }
 }
 
@@ -172,9 +173,9 @@ html .nebiusSwitch :global(*[class*="checked"]) {
 
 @media (min-width: 768px) {
   .codeBlock {
-    width: calc(50% - var(--g-spacing-4)); /* Equal width minus half the gap */
-    min-width: 400px; /* Minimum width to prevent too narrow blocks */
-    flex: 0 0 auto; /* Prevent flex growing/shrinking */
+    width: 48%; /* Fixed width - slightly less than 50% to account for gap */
+    min-width: 0; /* Remove the minimum width constraint */
+    flex: 0 0 auto; /* Don't grow or shrink - maintain fixed width */
   }
 }
 

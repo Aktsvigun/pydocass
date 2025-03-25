@@ -7,6 +7,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%; /* Fixed width relative to parent */
+  max-width: 800px; /* Maximum width constraint */
 }
 
 .codeHeader {
@@ -37,9 +39,10 @@
   background-color: var(--g-color-base-background);
   overflow: auto;
   padding: var(--g-spacing-2);
-  flex: 1;
+  flex: 0 1 auto; /* Changed from flex: 1 - prevents width growth but allows height shrinking */
   min-height: 200px; /* Minimum height for the editor */
   max-height: 600px; /* Maximum height before scrolling */
+  width: 100%; /* Fixed width relative to container */
 }
 
 /* Style for the CodeMirror editor to ensure proper sizing */
@@ -48,4 +51,6 @@
   min-height: 200px;
   max-height: 600px;
   overflow: auto;
+  width: 100%; /* Fixed width */
+  flex-shrink: 0; /* Prevents shrinking in width */
 } 

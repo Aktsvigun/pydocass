@@ -44,7 +44,6 @@ def write_comments(
         model_checkpoint=model_checkpoint,
     )
     messages = list(MESSAGES_COMMENTS) + [{"role": "user", "content": user_prompt}]
-    
     # Choose between streaming and non-streaming based on user preference
     if use_streaming:
         yield from _process_streaming_comments(
@@ -172,16 +171,25 @@ def _process_non_streaming_comments(
     code: str,
     modify_existing_documentation: bool,
 ):
-    """Process the comments completion request without streaming."""
-    response = client.beta.chat.completions.parse(
+    """
+    Process the comments completion request without streaming.
+    NB! Currently only supported for Anthropic with Instructor syntax
+    """
+    # Work-around for Anthropic models
+    import instructor
+    from anthropic import Anthropic
+    import os
+
+    api_key = os.getenv("ANTHROPIC_API_KEY", client.api_key)
+    client_anthropic = instructor.from_anthropic(client=Anthropic(api_key=api_key))
+    response = client_anthropic.messages.create(
         model=model_checkpoint,
         messages=messages,
         top_p=DEFAULT_TOP_P_COMMENTS,
         max_tokens=max_tokens,
-        response_format=pydantic_model,
+        response_model=pydantic_model,
     )
-    
-    comments_data = eval(response.choices[0].message.content)
+    comments_data = response.dict()
     
     if not comments_data:
         # If we couldn't parse the JSON, yield the original code
@@ -227,9 +235,8 @@ def _process_non_streaming_comments(
     
     # Create response data from the usage info
     response_data = {
-        "prompt_tokens": response.usage.prompt_tokens,
-        "completion_tokens": response.usage.completion_tokens,
-        "total_tokens": response.usage.total_tokens
+        "model": model_checkpoint,
+        "output": response.model_dump_json()
     }
     
     # Yield the final code with all comments added

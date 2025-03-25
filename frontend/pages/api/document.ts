@@ -1,9 +1,19 @@
 import { CodeBody, DocumentResponse } from '@/types/types';
-export const config = {
-  runtime: 'edge',
-};
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-const handler = async (req: Request): Promise<Response> => {
+// Remove the Edge Runtime config
+// export const config = {
+//   runtime: 'edge',
+// };
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     const {
       inputCode,
@@ -13,10 +23,14 @@ const handler = async (req: Request): Promise<Response> => {
       doWriteDocstrings,
       doWriteComments,
       // apiKey
-    } =
-      (await req.json()) as CodeBody;
+    } = req.body as CodeBody;
 
-    const response = await fetch('http://localhost:4000/document', {
+    // Use environment variable for backend URL with fallback
+    const backendUrl = process.env.BACKEND_URL || 'http://172.20.0.2:4000';
+    
+    console.log(`Connecting to backend at: ${backendUrl}`);
+    
+    const response = await fetch(`${backendUrl}/document`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,16 +50,32 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Backend error: ${response.statusText}`);
     }
 
-    return new Response(response.body, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-      },
-    });
+    // Set up streaming response
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No readable stream returned by the server.');
+    }
 
-  } catch (error) {
-    console.error(error);
-    return new Response('Error', { status: 500 });
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          res.end();
+          break;
+        }
+        // Forward the chunk to the client
+        res.write(value);
+      }
+    } catch (error) {
+      console.error('Streaming error:', error);
+      res.end();
+    }
+
+  } catch (error: any) {
+    console.error('API error:', error);
+    return res.status(500).json({ error: error.message || 'Unknown error' });
   }
-};
-
-export default handler;
+}

@@ -1,7 +1,7 @@
 import os
 from contextlib import contextmanager
 import json
-
+import logging
 from sqlalchemy import (
     create_engine,
     Column,
@@ -19,17 +19,23 @@ db_connection = str(os.getenv("DB_CONNECTION", None))
 if db_connection is not None and db_connection != "None":
     engine = create_engine(db_connection, pool_pre_ping=True, pool_recycle=3600)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+else:
+    SessionLocal = None
 
 Base = declarative_base()
 
-
+log = logging.getLogger(__name__)
 @contextmanager
 def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    if SessionLocal is None:
+        log.error("Database connection not configured")
+        yield
+    else:
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
 
 
 class SetType(TypeDecorator):
