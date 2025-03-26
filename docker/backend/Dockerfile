@@ -19,4 +19,4 @@ RUN pip install -e .
 EXPOSE 4000
 
 # Start the application
-CMD ["python", "server/app.py", "--port", "${PORT:-4000}"]
+CMD ["python", "server/app.py", "--port", "$PORT"]
