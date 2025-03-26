@@ -12,11 +12,12 @@ from openai.lib.streaming.chat._events import ChunkEvent
 
 from .constants import (
     NUM_SYSTEM_PROMPT_TOKENS_DICT,
+    MAX_MAX_TOTAL_TOKENS,
     MAX_TOTAL_TOKENS,
     DEFAULT_MAX_TOKENS_DICT,
     DEFAULT_MODEL_CHECKPOINT,
     LONG_CONTEXT_MODEL_CHECKPOINT,
-    MAX_TOKENS_WITH_LONG_CONTEXT,
+    MAX_TOKENS_FOR_LONG_CONTEXT,
     DEFAULT_TOKENIZER_CHECKPOINT,
     BASE_URL,
 )
@@ -24,14 +25,14 @@ from .constants import (
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
-def _get_valid_json_if_possible(string: str):
+def get_valid_json_if_possible(string: str):
     try:
         return json.loads(string)
     except ValueError as e:
         return False
 
 
-def _ast_parse_stable(string: str):
+def ast_parse_stable(string: str):
     try:
         return ast.parse(string)
     except SyntaxError as e:
@@ -40,7 +41,7 @@ def _ast_parse_stable(string: str):
         return ast.parse(string)
 
 
-def _get_nodes_dict_with_functions_classes_methods(
+def get_nodes_dict_with_functions_classes_methods(
     nodes: list[ast.AST],
 ) -> dict[str, tuple[Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef], str]]:
     target_nodes = {}
@@ -62,7 +63,7 @@ def _get_nodes_dict_with_functions_classes_methods(
     return target_nodes
 
 
-def _check_no_duplicating_methods(nodes: list[ast.AST]):
+def check_no_duplicating_methods(nodes: list[ast.AST]):
     functions_names = []
     classes_names = []
     for node in nodes:
@@ -98,7 +99,7 @@ def _check_no_duplicating_methods(nodes: list[ast.AST]):
                 )
 
 
-def _get_model_checkpoint_max_tokens(
+def get_model_checkpoint_max_tokens(
     user_prompt: str,
     tokenizer: PreTrainedTokenizerFast,
     task: Literal["annotations", "docstrings", "comments"],
@@ -114,7 +115,7 @@ def _get_model_checkpoint_max_tokens(
         )
         model_checkpoint = model_checkpoint or LONG_CONTEXT_MODEL_CHECKPOINT
         use_extended_prompt = False
-        max_tokens = MAX_TOKENS_WITH_LONG_CONTEXT
+        max_tokens = MAX_TOKENS_FOR_LONG_CONTEXT
     elif (
         task == "docstrings"
         and max_tokens
@@ -123,6 +124,7 @@ def _get_model_checkpoint_max_tokens(
         use_extended_prompt = False
         model_checkpoint = model_checkpoint or DEFAULT_MODEL_CHECKPOINT
     else:
+        max_tokens = min(max_tokens, MAX_MAX_TOTAL_TOKENS)
         use_extended_prompt = True
         model_checkpoint = model_checkpoint or DEFAULT_MODEL_CHECKPOINT
         if task == "docstrings":
@@ -132,7 +134,7 @@ def _get_model_checkpoint_max_tokens(
     return model_checkpoint, max_tokens
 
 
-def _extract_llm_response_data(chunk: ChunkEvent):
+def extract_llm_response_data(chunk: ChunkEvent):
     return {
         "id": chunk.chunk.id,
         "created_at": datetime.fromtimestamp(
@@ -145,7 +147,7 @@ def _extract_llm_response_data(chunk: ChunkEvent):
     }
 
 
-def _load_tokenizer(model_checkpoint: str) -> PreTrainedTokenizerFast:
+def load_tokenizer(model_checkpoint: str) -> PreTrainedTokenizerFast:
     cache_dir = os.getenv("HF_HOME", None)
     try:
         return AutoTokenizer.from_pretrained(model_checkpoint, cache_dir=cache_dir, use_fast=True)

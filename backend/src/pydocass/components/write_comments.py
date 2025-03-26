@@ -9,9 +9,9 @@ from ..utils.prompts import (
     USER_PROMPT,
 )
 from ..utils.utils import (
-    _get_valid_json_if_possible,
-    _get_model_checkpoint_max_tokens,
-    _extract_llm_response_data,
+    get_valid_json_if_possible,
+    get_model_checkpoint_max_tokens,
+    extract_llm_response_data,
 )
 from ..utils.constants import DEFAULT_TOP_P_COMMENTS, DEFAULT_MODEL_CHECKPOINT
 
@@ -37,7 +37,7 @@ def write_comments(
         for key, value in schema.items()
     }
     user_prompt = str(USER_PROMPT).format(code=code, json_schema=json.dumps(schema))
-    model_checkpoint, max_tokens = _get_model_checkpoint_max_tokens(
+    model_checkpoint, max_tokens = get_model_checkpoint_max_tokens(
         user_prompt=user_prompt,
         tokenizer=tokenizer,
         task="comments",
@@ -105,7 +105,7 @@ def _process_streaming_comments(
                 output_length += len(chunk.delta)
                 # Check that a new key has been processed
                 for end_pos in range(output_length, boundary, -1):
-                    if valid_dict := _get_valid_json_if_possible(
+                    if valid_dict := get_valid_json_if_possible(
                         output[:end_pos] + "}"
                     ):
                         for key, value in valid_dict.items():
@@ -155,7 +155,7 @@ def _process_streaming_comments(
                                         line, id_line_in_splitlines + 1
                                     )
                 boundary = output_length
-        response_data = _extract_llm_response_data(chunk)
+        response_data = extract_llm_response_data(chunk)
         yield code, response_data
 
 

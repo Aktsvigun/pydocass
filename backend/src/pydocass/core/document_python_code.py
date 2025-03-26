@@ -17,9 +17,9 @@ from ..components import (
 )
 from ..connection import submit_record
 from ..utils.utils import (
-    _get_nodes_dict_with_functions_classes_methods,
-    _check_no_duplicating_methods,
-    _load_tokenizer,
+    get_nodes_dict_with_functions_classes_methods,
+    check_no_duplicating_methods,
+    load_tokenizer,
 )
 from ..utils.constants import DEFAULT_MODEL_CHECKPOINT
 
@@ -48,13 +48,13 @@ def document_python_code(
     tree = ast.parse(code)
 
     # Check that there are no duplicate methods, classes, or functions
-    _check_no_duplicating_methods(tree.body)
+    check_no_duplicating_methods(tree.body)
     # Get a dictionary of nodes that need to be annotated or documented
-    target_nodes_dict = _get_nodes_dict_with_functions_classes_methods(tree.body)
+    target_nodes_dict = get_nodes_dict_with_functions_classes_methods(tree.body)
 
     # Load tokenizer to track the number of input tokens
     if tokenizer is None:
-        tokenizer = _load_tokenizer(model_checkpoint)
+        tokenizer = load_tokenizer(model_checkpoint)
 
     output = None
     # Set default values
@@ -89,7 +89,7 @@ def document_python_code(
             # this throughout the code
             tree = ast.parse(code)
             # Get dictionary with target nodes with the updated AST code
-            target_nodes_dict = _get_nodes_dict_with_functions_classes_methods(
+            target_nodes_dict = get_nodes_dict_with_functions_classes_methods(
                 tree.body
             )
 

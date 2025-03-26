@@ -12,12 +12,12 @@ from ..utils.prompts import (
     USER_PROMPT,
 )
 from ..utils.utils import (
-    _get_valid_json_if_possible,
-    _get_model_checkpoint_max_tokens,
-    _extract_llm_response_data,
+    get_valid_json_if_possible,
+    get_model_checkpoint_max_tokens,
+    extract_llm_response_data,
 )
 from ..utils.constants import DEFAULT_TOP_P_ANNOTATIONS, DEFAULT_MODEL_CHECKPOINT
-from .write_docstrings import _get_docstring_position_for_node_with_no_docstring
+from .write_docstrings import get_docstring_position_for_node_with_no_docstring
 
 
 TYPING_CLASSES = set(name for name in dir(typing) if name[0].isupper())
@@ -58,7 +58,7 @@ def write_arguments_annotations(
     user_prompt = str(USER_PROMPT).format(
         code=code, json_schema=pydantic_model.model_json_schema()
     )
-    model_checkpoint, max_tokens = _get_model_checkpoint_max_tokens(
+    model_checkpoint, max_tokens = get_model_checkpoint_max_tokens(
         user_prompt=user_prompt,
         tokenizer=tokenizer,
         task="annotations",
@@ -130,8 +130,8 @@ def _process_streaming_completion(
                 for end_pos in range(output_length, boundary, -1):
                     # The output looks smth like `{"ClassKekMethodLol": {"arg1": "list[int]", "ar`
                     if valid_dict := (
-                        _get_valid_json_if_possible(output[:end_pos] + "}}")
-                        or _get_valid_json_if_possible(output[:end_pos] + "}}")
+                        get_valid_json_if_possible(output[:end_pos] + "}}")
+                        or get_valid_json_if_possible(output[:end_pos] + "}}")
                     ):
                         # TODO: stop checking all keys, only do for the last N keys and only if `chunk.delta` length is too large
                         for node_name, node_annotations in valid_dict.items():
@@ -181,7 +181,7 @@ def _process_streaming_completion(
                                         yield code
                                     finished_keys[node_name].add(key)
                 boundary = output_length
-        response_data = _extract_llm_response_data(chunk)
+        response_data = extract_llm_response_data(chunk)
         yield code, required_typing_imports, response_data
 
 
@@ -339,7 +339,7 @@ def _update_returns_annotation_in_code(
     lines_shift: int = 0,
 ) -> tuple[str, int]:
     if func.returns is None:
-        docstring_position = _get_docstring_position_for_node_with_no_docstring(
+        docstring_position = get_docstring_position_for_node_with_no_docstring(
             node=func,
             code=code,
             lines_shift=lines_shift,

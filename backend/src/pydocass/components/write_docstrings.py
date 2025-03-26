@@ -14,9 +14,9 @@ from ..utils.prompts import (
     USER_PROMPT,
 )
 from ..utils.utils import (
-    _get_valid_json_if_possible,
-    _get_model_checkpoint_max_tokens,
-    _extract_llm_response_data,
+    get_valid_json_if_possible,
+    get_model_checkpoint_max_tokens,
+    extract_llm_response_data,
 )
 from ..utils.constants import DEFAULT_TOP_P_DOCSTRINGS, DEFAULT_MODEL_CHECKPOINT
 
@@ -49,7 +49,7 @@ def write_docstrings(
         code=code, json_schema=pydantic_model.model_json_schema()
     )
     model_checkpoint, max_tokens, use_extended_prompt = (
-        _get_model_checkpoint_max_tokens(
+        get_model_checkpoint_max_tokens(
             user_prompt=user_prompt,
             tokenizer=tokenizer,
             task="docstrings",
@@ -111,7 +111,7 @@ def _process_streaming_docstrings(
                 output_length += len(chunk.delta)
             # Check that a new key has been processed
             for end_pos in range(output_length, boundary, -1):
-                if valid_dict := _get_valid_json_if_possible(output[:end_pos] + "}"):
+                if valid_dict := get_valid_json_if_possible(output[:end_pos] + "}"):
                     for key, value in valid_dict.items():
                         if not key in finished_keys and value:
                             # The outputted keys will be function_{func_name} or class_{class_name}
@@ -148,7 +148,7 @@ def _process_streaming_docstrings(
                             )
                             finished_keys.add(key)
             boundary = output_length
-        response_data = _extract_llm_response_data(chunk)
+        response_data = extract_llm_response_data(chunk)
         yield code, response_data
 
 
@@ -267,7 +267,7 @@ def _update_code_with_node_docstring(
     return code[: positions[0]].strip() + docstring_to_add + ending
 
 
-def _get_docstring_position_for_node_with_no_docstring(
+def get_docstring_position_for_node_with_no_docstring(
     node: Union[ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef],
     code: str,
     prev_arg_lineno: int = 0,
@@ -368,7 +368,7 @@ def _get_docstring_position(
         return start, end
 
     # If no docstring, return position where it should be
-    pos = _get_docstring_position_for_node_with_no_docstring(
+    pos = get_docstring_position_for_node_with_no_docstring(
         node=node, code=code, lines_shift=lines_shift
     )
     return pos, pos
