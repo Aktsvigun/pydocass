@@ -1,20 +1,9 @@
 import { CodeBody, DocumentResponse } from '@/types/types';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
 export const config = {
-  api: {
-    bodyParser: false, // disable body parsing so we can stream
-  },
+  runtime: 'edge',
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+const handler = async (req: Request): Promise<Response> => {
   try {
     const {
       inputCode,
@@ -24,16 +13,10 @@ export default async function handler(
       doWriteDocstrings,
       doWriteComments,
       // apiKey
-    } = req.body as CodeBody;
+    } =
+      (await req.json()) as CodeBody;
 
-    // Try both hostname and IP to ensure connectivity
-    const backendUrl = process.env.NODE_ENV === 'production' 
-      ? 'http://backend:4000' 
-      : 'http://172.20.0.2:4000';
-    
-    console.log(`Connecting to backend at: ${backendUrl}`);
-    
-    const response = await fetch(`${backendUrl}/document`, {
+    const response = await fetch('http://localhost:1488/document', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,12 +36,16 @@ export default async function handler(
       throw new Error(`Backend error: ${response.statusText}`);
     }
 
-    // For streaming responses in traditional API routes
-    const data = await response.text();
-    return res.status(200).send(data);
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+      },
+    });
 
-  } catch (error: any) {
-    console.error('API error:', error);
-    return res.status(500).json({ error: error.message || 'Unknown error' });
+  } catch (error) {
+    console.error(error);
+    return new Response('Error', { status: 500 });
   }
-}
+};
+
+export default handler;

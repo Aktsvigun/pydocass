@@ -1,10 +1,9 @@
 import ast
 import typing
-import time
 from typing import Union
 from openai import Client
 from pydantic import create_model, Field, BaseModel
-from transformers import PreTrainedTokenizerFast
+from transformers import PreTrainedTokenizer
 
 from ..utils.prompts import (
     MESSAGES_ARGUMENTS_ANNOTATION,
@@ -16,7 +15,6 @@ from ..utils.utils import (
     _get_model_checkpoint_max_tokens,
     _extract_llm_response_data,
 )
-from ..utils.constants import DEFAULT_TOP_P_ANNOTATIONS, DEFAULT_MODEL_CHECKPOINT
 from .write_docstrings import _get_docstring_position_for_node_with_no_docstring
 
 
@@ -43,18 +41,18 @@ def write_arguments_annotations(
     ],
     code: str,
     client: Client,
-    tokenizer: PreTrainedTokenizerFast,
+    tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
-    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
-    use_streaming: bool = True,
+    model_checkpoint: str | None = None,
 ):
     model_and_args = _create_pydantic_model_and_get_nodes_args(
         target_nodes_dict, modify_existing_documentation=modify_existing_documentation
     )
-    if model_and_args is None:
+    if model_and_args is not None:
+        pydantic_model, all_nodes_with_args = model_and_args
+    else:
         # In this case, there are no arguments to annotate
         return
-    pydantic_model, all_nodes_with_args = model_and_args
     user_prompt = str(USER_PROMPT).format(
         code=code, json_schema=pydantic_model.model_json_schema()
     )
@@ -67,46 +65,10 @@ def write_arguments_annotations(
     messages = list(MESSAGES_ARGUMENTS_ANNOTATION) + [
         {"role": "user", "content": user_prompt}
     ]
-    # Handle streaming or non-streaming based on user preference
-    if use_streaming:
-        yield from _process_streaming_completion(
-            client=client,
-            model_checkpoint=model_checkpoint,
-            messages=messages,
-            max_tokens=max_tokens,
-            pydantic_model=pydantic_model,
-            code=code,
-            all_nodes_with_args=all_nodes_with_args,
-            modify_existing_documentation=modify_existing_documentation,
-        )
-    else:
-        yield from _process_non_streaming_completion(
-            client=client,
-            model_checkpoint=model_checkpoint,
-            messages=messages,
-            max_tokens=max_tokens,
-            pydantic_model=pydantic_model,
-            code=code,
-            all_nodes_with_args=all_nodes_with_args,
-            modify_existing_documentation=modify_existing_documentation,
-        )
-
-
-def _process_streaming_completion(
-    client: Client,
-    model_checkpoint: str,
-    messages: list,
-    max_tokens: int,
-    pydantic_model: BaseModel,
-    code: str,
-    all_nodes_with_args: dict,
-    modify_existing_documentation: bool,
-):
-    """Process the completion request using streaming."""
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
-        top_p=DEFAULT_TOP_P_ANNOTATIONS,
+        top_p=0.5,
         max_tokens=max_tokens,
         response_format=pydantic_model,
         stream_options={"include_usage": True},
@@ -137,8 +99,9 @@ def _process_streaming_completion(
                         for node_name, node_annotations in valid_dict.items():
                             for key, value in node_annotations.items():
                                 if not key in finished_keys[node_name] and value:
-                                    # If parts of the annotation belong to the `typing` package, add the imports
-                                    required_typing_imports = _potentially_add_typing_import(value=value, required_typing_imports=required_typing_imports)
+                                    # If the annotation belongs to the `typing` package and was not imported, need to import it
+                                    if value in TYPING_CLASSES:
+                                        required_typing_imports.add(value)
                                     # If the annotation is broken
                                     value = _maybe_fix_unclosed_annotation(
                                         value, client, model_checkpoint, max_tokens
@@ -183,101 +146,6 @@ def _process_streaming_completion(
                 boundary = output_length
         response_data = _extract_llm_response_data(chunk)
         yield code, required_typing_imports, response_data
-
-
-def _process_non_streaming_completion(
-    client: Client,
-    model_checkpoint: str,
-    messages: list,
-    max_tokens: int,
-    pydantic_model: BaseModel,
-    code: str,
-    all_nodes_with_args: dict,
-    modify_existing_documentation: bool,
-):
-    """
-    Process the completion request without streaming.
-    NB! Currently only supported for Anthropic with Instructor syntax
-    """
-    # Work-around for Anthropic models
-    import instructor
-    from anthropic import Anthropic
-    import os
-
-    api_key = os.getenv("ANTHROPIC_API_KEY", client.api_key)
-    client_anthropic = instructor.from_anthropic(client=Anthropic(api_key=api_key))
-    response = client_anthropic.messages.create(
-        model=model_checkpoint,
-        messages=messages,
-        top_p=DEFAULT_TOP_P_ANNOTATIONS,
-        max_tokens=max_tokens,
-        response_model=pydantic_model,
-    )
-    annotations_data = response.dict()
-    
-    if not annotations_data:
-        # If we couldn't parse the JSON, yield the original code
-        yield code
-        return
-    
-    required_typing_imports = set()
-    prev_arg_lineno = 0
-    shift_inside_line = 0
-    lines_shift = 0
-    
-    # For each node in the response
-    for node_name, node_annotations in annotations_data.items():
-        if node_name not in all_nodes_with_args:
-            continue
-            
-        for key, value in node_annotations.items():
-            if not value:
-                continue
-                
-            # If parts of the annotation belong to the `typing` package, add the imports
-            required_typing_imports = _potentially_add_typing_import(value=value, required_typing_imports=required_typing_imports)
-                
-            # If the annotation is broken
-            value = _maybe_fix_unclosed_annotation(
-                value, client, model_checkpoint, max_tokens
-            )
-            
-            # Update key value in the code
-            kwargs = dict(
-                arg_value=value,
-                code=code,
-                modify_existing_documentation=modify_existing_documentation,
-                prev_arg_lineno=prev_arg_lineno,
-                shift_inside_line=shift_inside_line,
-                lines_shift=lines_shift,
-            )
-            
-            # Get the argument data
-            arg_data = all_nodes_with_args[node_name][1][key][0]
-            
-            # Update the appropriate annotation in the code
-            if not (
-                arg_data is None
-                or isinstance(arg_data, POSSIBLE_RETURNS_ANNOTATION_TYPES)
-            ):
-                # Update argument annotation
-                code, prev_arg_lineno, shift_inside_line, lines_shift = _update_argument_annotation_in_code(
-                    arg_data=arg_data, **kwargs
-                )
-            else:
-                # Update returns annotation
-                code, lines_shift = _update_returns_annotation_in_code(
-                    func=all_nodes_with_args[node_name][0], **kwargs
-                )
-                
-    # Final yield with the updated code and required imports
-    response_data = {
-        "model": model_checkpoint,
-        "output": response.model_dump_json()
-    }
-    # Current work-around to handle Anthropic limits
-    # time.sleep(60)
-    yield code, required_typing_imports, response_data
 
 
 def _update_argument_annotation_in_code(
@@ -409,9 +277,6 @@ def _create_pydantic_model_and_get_args_for_node(
         model_name = f"{node_type.title()}{node_name.title()}"
     elif node_type == "method":
         class_name, method_name = node_name.split("-")
-        # Don't annotate the `__init__` methods
-        if method_name == "__init__":
-            return
         model_name = f"Class{class_name.title()}Method{method_name.title()}"
     else:
         raise NotImplementedError(f"Unsupported node type: {node_type}")
@@ -622,22 +487,6 @@ def _get_function_or_method_args_data(
         first_arg = list(node_args.keys())[0]
         node_args.pop(first_arg)
     return node_args
-
-
-def _potentially_add_typing_import(value: str, required_typing_imports: set[str]) -> set[str]:
-    # e.g. value = Any
-    if value in TYPING_CLASSES:
-        required_typing_imports.add(value)
-        return required_typing_imports
-    # e.g. value = dict[str, Any] -> inner_values_in_typing_classes = [Any]
-    inner_values_in_typing_classes = [x for x in TYPING_CLASSES if ("[" + x) in value]
-    for inner_value in inner_values_in_typing_classes:
-        required_typing_imports.add(inner_value)
-    # e.g. value = Optional[Union[dict[str, Any], int]] -> outer_values_in_typing_classes = [Optional, Union]
-    outer_values_in_typing_classes = [x for x in TYPING_CLASSES if (x + "[") in value]
-    for outer_value in outer_values_in_typing_classes:
-        required_typing_imports.add(outer_value)
-    return required_typing_imports
 
 
 def _maybe_fix_unclosed_annotation(

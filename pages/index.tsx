@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import { CodeBlock } from '@/components/CodeBlock';
 // import { APIKeyInput } from '@/components/APIKeyInput';
 import { ModelSelect } from '@/components/ModelSelect';
-import { NebiusModel } from '@/types/types';
-import { CodeBody } from '@/types/types';
+import { NebiusModel, CodeBody } from '@/types/types';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button, Checkbox, Switch, Text, useLayoutContext } from '@gravity-ui/uikit';
@@ -18,7 +17,7 @@ export default function Home() {
 
   // Model selection
   const [model, setModel] = useState<NebiusModel>(
-    'Qwen/Qwen2.5-Coder-32B-Instruct-fast',
+    'deepseek-ai/DeepSeek-V3',
   );
 
   // Four booleans

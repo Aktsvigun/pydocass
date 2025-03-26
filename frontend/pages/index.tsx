@@ -4,8 +4,8 @@ import { CodeBlock } from '@/components/CodeBlock';
 // import { APIKeyInput } from '@/components/APIKeyInput';
 import { ModelSelect } from '@/components/ModelSelect';
 import { NebiusModel, CodeBody } from '@/types/types';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Button, Checkbox, Switch, Text, useLayoutContext } from '@gravity-ui/uikit';
 import styles from '@/styles/Home.module.css';
 
@@ -17,7 +17,7 @@ export default function Home() {
 
   // Model selection
   const [model, setModel] = useState<NebiusModel>(
-    'Qwen/Qwen2.5-Coder-32B-Instruct-fast',
+    'deepseek-ai/DeepSeek-V3',
   );
 
   // Four booleans
@@ -73,8 +73,6 @@ export default function Home() {
 
       if (!response.ok) {
         setLoading(false);
-        // TODO: add different handling based on the error. For bad code, 
-        // we need to show the error message to the user.
         alert('Error calling backend /api/document.');
         return;
       }

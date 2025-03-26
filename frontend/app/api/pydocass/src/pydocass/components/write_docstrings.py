@@ -2,7 +2,7 @@ import ast
 from typing import Union, Literal
 from pydantic import create_model, Field, BaseModel
 import warnings
-import time
+
 import numpy as np
 from transformers import PreTrainedTokenizer
 
@@ -18,7 +18,7 @@ from ..utils.utils import (
     _get_model_checkpoint_max_tokens,
     _extract_llm_response_data,
 )
-from ..utils.constants import DEFAULT_TOP_P_DOCSTRINGS, DEFAULT_MODEL_CHECKPOINT
+
 
 def write_docstrings(
     target_nodes_dict: dict[
@@ -28,9 +28,8 @@ def write_docstrings(
     client: Client,
     tokenizer: PreTrainedTokenizer,
     modify_existing_documentation: bool = False,
-    model_checkpoint: str = DEFAULT_MODEL_CHECKPOINT,
-    use_streaming: bool = True,
-):
+    model_checkpoint: str = "Qwen/Qwen2.5-Coder-32B-Instruct-fast",
+) -> str:
     if not modify_existing_documentation:
         existing_docstrings = [
             _extract_docstring(node)
@@ -44,9 +43,9 @@ def write_docstrings(
         if len(target_nodes_dict) == 0:
             return code
 
-    pydantic_model = _create_pydantic_model(target_nodes_dict)
+    response_format = _create_pydantic_model(target_nodes_dict)
     user_prompt = str(USER_PROMPT).format(
-        code=code, json_schema=pydantic_model.model_json_schema()
+        code=code, json_schema=response_format.model_json_schema()
     )
     model_checkpoint, max_tokens, use_extended_prompt = (
         _get_model_checkpoint_max_tokens(
@@ -58,46 +57,12 @@ def write_docstrings(
     )
     messages = _create_messages(use_extended_prompt)
     messages += [{"role": "user", "content": user_prompt}]
-    
-    # Choose between streaming and non-streaming based on user preference
-    if use_streaming:
-        yield from _process_streaming_docstrings(
-            client=client,
-            model_checkpoint=model_checkpoint,
-            messages=messages,
-            max_tokens=max_tokens,
-            pydantic_model=pydantic_model,
-            code=code,
-            target_nodes_dict=target_nodes_dict,
-        )
-    else:
-        yield from _process_non_streaming_docstrings(
-            client=client,
-            model_checkpoint=model_checkpoint,
-            messages=messages,
-            max_tokens=max_tokens,
-            pydantic_model=pydantic_model,
-            code=code,
-            target_nodes_dict=target_nodes_dict,
-        )
-
-
-def _process_streaming_docstrings(
-    client: Client,
-    model_checkpoint: str,
-    messages: list,
-    max_tokens: int,
-    pydantic_model: BaseModel,
-    code: str,
-    target_nodes_dict: dict,
-):
-    """Process the docstrings completion request using streaming."""
     with client.beta.chat.completions.stream(
         model=model_checkpoint,
         messages=messages,
-        top_p=DEFAULT_TOP_P_DOCSTRINGS,
+        top_p=0.01,
         max_tokens=max_tokens,
-        response_format=pydantic_model,
+        response_format=response_format,
         stream_options={"include_usage": True},
     ) as stream:
         output = ""
@@ -150,95 +115,6 @@ def _process_streaming_docstrings(
             boundary = output_length
         response_data = _extract_llm_response_data(chunk)
         yield code, response_data
-
-
-def _process_non_streaming_docstrings(
-    client: Client,
-    model_checkpoint: str,
-    messages: list,
-    max_tokens: int,
-    pydantic_model: BaseModel,
-    code: str,
-    target_nodes_dict: dict,
-):
-    """
-    Process the docstrings completion request without streaming.
-    NB! Currently only supported for Anthropic with Instructor syntax
-    """
-    # Work-around for Anthropic models
-    import instructor
-    from anthropic import Anthropic
-    import os
-
-    api_key = os.getenv("ANTHROPIC_API_KEY", client.api_key)
-    client_anthropic = instructor.from_anthropic(client=Anthropic(api_key=api_key))
-    response = client_anthropic.messages.create(
-        model=model_checkpoint,
-        messages=messages,
-        top_p=DEFAULT_TOP_P_DOCSTRINGS,
-        max_tokens=max_tokens,
-        response_model=pydantic_model,
-    )
-    docstrings_data = response.dict()
-
-    if not docstrings_data:
-        # If we couldn't parse the JSON, yield the original code
-        yield code
-        return
-    
-    lines_shift = 0
-    
-    # Process all docstrings at once
-    for key, value in docstrings_data.items():
-        if not value:
-            continue
-            
-        # Get the function or class to add the docstring to
-        func = _get_function_by_key(key, target_nodes_dict)
-        
-        # Format the docstring with proper line breaks and tabs
-        value = (
-            value.replace("\\\\n", "\n")
-            .replace("\\\\t", "\t")
-            .replace("\\n", "\n")
-            .replace("\\t", "\t")
-        )
-        
-        num_tabs_to_use = (
-            code.splitlines()[func.lineno + lines_shift - 1]
-            .replace(" " * 4, "\t")
-            .count("\t")
-            + 1
-        )
-        
-        joiner = "\n" + "\t" * num_tabs_to_use
-        value = "".join(joiner + x for x in value.split("\n"))
-        
-        # Store the old code to calculate the line difference
-        old_code = code
-        
-        # Update the code with the new docstring
-        code = _update_code_with_node_docstring(
-            generated_docstring=value,
-            function=func,
-            code=code,
-            lines_shift=lines_shift,
-            num_tabs_to_use=num_tabs_to_use,
-        )
-        
-        # Update the line shift for the next docstring
-        lines_shift += len(code.splitlines()) - len(old_code.splitlines())
-    
-    # Create response data from the usage info
-    response_data = {
-        "model": model_checkpoint,
-        "output": response.model_dump_json()
-    }
-    
-    # Current work-around to handle Anthropic limits
-    # time.sleep(60)
-    # Yield the final code with all docstrings added
-    yield code, response_data
 
 
 def _update_code_with_node_docstring(

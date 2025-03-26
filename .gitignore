@@ -3,6 +3,7 @@ demo_track_ACL_2025_paper
 
 # dependencies
 /node_modules
+*/node_modules
 /.pnp
 .pnp.js
 
@@ -11,6 +12,7 @@ demo_track_ACL_2025_paper
 
 # next.js
 /.next/
+*/.next/
 /out/
 
 # production
@@ -34,6 +36,7 @@ yarn-error.log*
 .env*.local
 .env
 frontend/config/.env
+*.env
 
 # vercel
 .vercel
