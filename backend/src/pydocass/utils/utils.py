@@ -21,6 +21,8 @@ from .constants import (
     BASE_URL,
 )
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 def _get_valid_json_if_possible(string: str):
     try:

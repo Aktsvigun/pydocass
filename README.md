@@ -18,6 +18,16 @@ For more details on the project structure, please see [docs/README.md](docs/READ
 
 ## Running Locally
 
+**Prerequisites**
+
+Before running the application, you need to set up your environment variables:
+
+1. Copy the `.env.local.example` file to `.env`:
+   ```bash
+   cp .env.local.example .env
+   ```
+2. Open the `.env` file and fill in the required values (API keys, database connection, etc.)
+
 **1. Frontend**
 
 ```bash
